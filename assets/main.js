@@ -193,7 +193,7 @@
 
   /* ---------- hero slider ---------- */
   var hero = $('.hero');
-  if (hero) {
+  if (hero && $('.slide', hero)) {
     var slides = $$('.slide', hero), bgs = $$('.hero-bg img', hero), dots = $$('.pager button', hero), cap = $('.hero-cap', hero), ctr = $('.counter', hero);
     var idx = 0, DUR = 5500, timer = null, paused = false, reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     hero.style.setProperty('--dur', DUR + 'ms');
