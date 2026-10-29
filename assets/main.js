@@ -6,20 +6,27 @@
   var enc = encodeURIComponent;
   var money = function (n) { return Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ') + ' ₽'; };
 
-  /* ---------- preloader ---------- */
+  /* ---------- preloader: стальные створки с клёпками ---------- */
   (function () {
     var pl = $('#preloader'); if (!pl) return;
-    var t0 = performance.now(), done = false;
-    function hide() {
-      if (done) return; done = true;
-      setTimeout(function () {
-        pl.classList.add('hide');
-        try { sessionStorage.setItem('pl', '1'); } catch (e) {}
-        setTimeout(function () { if (pl.parentNode) pl.parentNode.removeChild(pl); }, 550);
-      }, Math.max(0, 800 - (performance.now() - t0)));
+    var n = $('#pl-n'), bar = $('#pl-i'), t0 = performance.now(), loaded = false, shown = 0, closed = false;
+    function open() {
+      if (closed) return; closed = true;
+      pl.classList.add('open');
+      try { sessionStorage.setItem('pl', '1'); } catch (e) {}
+      setTimeout(function () { if (pl.parentNode) pl.parentNode.removeChild(pl); }, 1250);
     }
-    if (document.readyState === 'complete') hide(); else window.addEventListener('load', hide);
-    setTimeout(hide, 3200);
+    function tick() {
+      var el = performance.now() - t0, cap = loaded ? 100 : 88, goal = Math.min(cap, el / 14);
+      shown += (goal - shown) * .18; if (loaded && shown > 99.4) shown = 100;
+      var v = Math.round(shown); if (n) n.textContent = v; if (bar) bar.style.transform = 'scaleX(' + (shown / 100) + ')';
+      if (shown >= 100 && el > 1300) { setTimeout(open, 180); return; }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    function ok() { loaded = true; }
+    if (document.readyState === 'complete') ok(); else window.addEventListener('load', ok);
+    setTimeout(function () { loaded = true; }, 3500); setTimeout(open, 5200);
   })();
 
   /* ---------- toast ---------- */
