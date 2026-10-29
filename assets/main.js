@@ -127,8 +127,16 @@
       (payload.comment ? '\n' + payload.comment : '');
     var label = btn.textContent; btn.disabled = true; btn.textContent = 'Отправляем…';
     msgBox.innerHTML = '';
-    fetch('/send.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok, j: j }; }); })
+    var sendJson = function (url) { return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok, j: j }; }); }); };
+    var viaMail = function () {
+      return fetch('https://formsubmit.co/ajax/krouli2020@yandex.ru', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ _subject: (kind === 'cart' ? 'Заказ с сайта iRon Shop' : 'Сообщение с сайта iRon Shop'), _captcha: 'false', _template: 'table', name: payload.name, phone: payload.phone, message: text, page: payload.page }) })
+        .then(function (r) { return r.json(); }).then(function (j) { return { ok: j.success === 'true' || j.success === true, j: j }; });
+    };
+    if (payload.website) { btn.disabled = false; btn.textContent = label; return; }
+    sendJson('/api/send').catch(function () { return { ok: false }; })
+      .then(function (r) { return r.ok ? r : sendJson('/send.php').catch(function () { return { ok: false }; }); })
+      .then(function (r) { return r.ok ? r : viaMail(); })
       .then(function (res) {
         if (!res.ok) throw new Error('fail');
         if (kind === 'cart') {
@@ -178,7 +186,7 @@
   var main = $('#main-photo'), thumbs = $$('.thumbs button');
   thumbs.forEach(function (b) {
     b.addEventListener('click', function () {
-      main.src = b.getAttribute('data-src'); main.alt = b.getAttribute('data-alt') || main.alt;
+      main.src = b.getAttribute('data-src'); var mb = $('.gallery .main'); if (mb) mb.style.setProperty('--bg', 'url(' + b.getAttribute('data-src') + ')'); main.alt = b.getAttribute('data-alt') || main.alt;
       thumbs.forEach(function (x) { x.removeAttribute('aria-current'); }); b.setAttribute('aria-current', 'true');
     });
   });

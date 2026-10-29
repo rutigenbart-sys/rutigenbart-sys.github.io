@@ -150,8 +150,9 @@ section{padding:60px 0}
 .card{flex:0 0 calc((100% - var(--gap)*(var(--cols) - 1))/var(--cols));min-width:0;position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s}
 .card:hover{transform:translateY(-4px);border-color:#4a4331;box-shadow:0 18px 40px rgba(0,0,0,.45)}
 .card>a{display:block;text-decoration:none}
-.card .ph{aspect-ratio:4/5;background:#fff;overflow:hidden}
-.card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.card .ph{aspect-ratio:3/4;background:#16181b;overflow:hidden;position:relative;isolation:isolate}
+.card .ph::before{content:"";position:absolute;inset:-20px;z-index:-1;background:var(--bg) center/cover;filter:blur(26px) brightness(.62) saturate(1.1)}
+.card .ph img{position:relative;width:100%;height:100%;object-fit:contain;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
 .card:hover .ph img{transform:scale(1.05)}
 .card .info{padding:14px 14px 4px;flex:1}
 .card h3{font:600 .98rem/1.35 var(--body);letter-spacing:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.7em}
@@ -234,8 +235,9 @@ a.inl,.prose a,.seo a{color:var(--brass2);text-underline-offset:3px}
 
 /* ---------- product page ---------- */
 .product{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;padding:20px 0 48px;align-items:start}
-.gallery .main{background:#fff;border-radius:20px;overflow:hidden;aspect-ratio:1/1;cursor:zoom-in;position:relative;border:1px solid var(--line)}
-.gallery .main img{width:100%;height:100%;object-fit:contain}
+.gallery .main{background:#16181b;border-radius:20px;overflow:hidden;aspect-ratio:3/4;cursor:zoom-in;position:relative;isolation:isolate;border:1px solid var(--line)}
+.gallery .main::before{content:"";position:absolute;inset:-30px;z-index:-1;background:var(--bg) center/cover;filter:blur(30px) brightness(.6) saturate(1.1)}
+.gallery .main img{position:relative;width:100%;height:100%;object-fit:contain}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin:12px 0 0;padding:0;list-style:none}
 .thumbs button{padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;display:block;width:100%;aspect-ratio:1/1;opacity:.75;transition:opacity .2s,border-color .2s}
 .thumbs button:hover{opacity:1}
