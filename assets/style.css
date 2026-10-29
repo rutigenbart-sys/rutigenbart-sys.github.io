@@ -450,13 +450,11 @@ a.inl,.prose a,.seo a{color:var(--brass2);text-underline-offset:3px}
 /* v3 type: light, minimal */
 body{font-weight:300}b,strong{font-weight:500}.nav a{font-weight:400;letter-spacing:.01em}.phone,.cbtn,.fab-list a,.faq summary,.stock{font-weight:500}
 .btn{font-weight:500;letter-spacing:.01em}h1{letter-spacing:-.02em}
-.gallery .main img{object-fit:cover}.thumbs button{aspect-ratio:3/4}
 /* v3: всё в 3:4 */
 .card .ph img,.post .pv img,.article .cover img{object-fit:cover}
 .post .pv{aspect-ratio:3/4}.post .pv::before{display:none}
 .article .cover{aspect-ratio:3/4;max-width:520px;margin-left:auto;margin-right:auto}.article .cover::before{display:none}
-.gallery .main::before{display:none}
-.cross .ph,.cross .card .ph{aspect-ratio:3/4}
+.gallery .main::before{display:none}.gallery .main img{object-fit:cover}.thumbs button{aspect-ratio:3/4}
 
 .oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:28px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
 .oz:hover{transform:translateY(-4px);box-shadow:0 28px 80px rgba(0,91,255,.5)}
