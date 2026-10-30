@@ -3,6 +3,9 @@
   Require all denied
 </FilesMatch>
 Options -Indexes
+
+# Старые адреса товаров с Tilda ведут в раздел
+RedirectMatch 301 ^/(braslet|glases|mask|unisex|jinsa)/tproduct/.*$ /$1/
 ErrorDocument 404 /404.html
 
 <IfModule mod_expires.c>

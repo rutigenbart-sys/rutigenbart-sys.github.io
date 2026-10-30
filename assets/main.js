@@ -190,12 +190,11 @@
   }
 
   /* ---------- gallery + lightbox + description ---------- */
-  var main = $('#main-photo'), thumbs = $$('.thumbs button');
-  thumbs.forEach(function (b) {
-    b.addEventListener('click', function () {
-      main.src = b.getAttribute('data-src'); var mb = $('.gallery .main'); if (mb) mb.style.setProperty('--bg', 'url(' + b.getAttribute('data-src') + ')'); main.alt = b.getAttribute('data-alt') || main.alt;
-      thumbs.forEach(function (x) { x.removeAttribute('aria-current'); }); b.setAttribute('aria-current', 'true');
-    });
+  var main = $('#main-photo');
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('.thumbs button'); if (!b || !main) return;
+    main.src = b.getAttribute('data-src'); var mb = $('.gallery .main'); if (mb) mb.style.setProperty('--bg', 'url(' + b.getAttribute('data-src') + ')'); main.alt = b.getAttribute('data-alt') || main.alt;
+    $$('.thumbs button').forEach(function (x) { x.removeAttribute('aria-current'); }); b.setAttribute('aria-current', 'true');
   });
   var mainBox = $('.gallery .main');
   if (mainBox) mainBox.addEventListener('click', function () {
@@ -205,6 +204,52 @@
   });
   var more = $('.desc .more'), moreBtn = $('#more-btn');
   if (more && moreBtn) moreBtn.addEventListener('click', function () { var o = more.classList.toggle('open'); moreBtn.textContent = o ? 'Свернуть' : 'Читать полностью'; });
+
+  /* ---------- варианты: цвет и размер ---------- */
+  (function () {
+    var box = $('#variants-ui'), dEl = $('#v-data'); if (!box || !dEl) return;
+    var D; try { D = JSON.parse(dEl.textContent); } catch (err) { return; }
+    var V = D.v, cur = V[0];
+    var swatches = $$('.swatch', box), chips = $$('.chip', box);
+    var big = $('.buy .big'), skuEl = $('#v-sku'), addBtn = $('.buy [data-add]'), mainImg = $('#main-photo'), mainBox = $('.gallery .main'), gal = $('.gallery');
+    function has(c, s) { return V.some(function (v) { return v.c === c && v.s === s; }); }
+    function label(v) { var a = []; if (v.c) a.push(v.c.toLowerCase()); if (v.s) a.push('размер ' + v.s); return a.join(', '); }
+    function choose(c, s, keep) {
+      var list = V.filter(function (v) { return keep === 'c' ? v.c === c : v.s === s; });
+      var exact = list.filter(function (v) { return keep === 'c' ? v.s === s : v.c === c; })[0];
+      cur = exact || list[0] || cur; render();
+    }
+    function render() {
+      swatches.forEach(function (b) { var on = b.getAttribute('data-color') === cur.c; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); b.classList.toggle('na', !has(b.getAttribute('data-color'), cur.s)); });
+      chips.forEach(function (b) { var on = b.getAttribute('data-size') === cur.s; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); b.classList.toggle('na', !has(cur.c, b.getAttribute('data-size'))); });
+      var cn = $('#v-color-name'), sn = $('#v-size-name'); if (cn) cn.textContent = cur.c; if (sn) sn.textContent = cur.s;
+      if (big) {
+        var b = $('b', big); if (b) b.textContent = money(cur.p);
+        var s = $('s', big);
+        if (cur.po && cur.po > cur.p) { if (!s) { s = document.createElement('s'); big.appendChild(s); } s.textContent = money(cur.po); } else if (s) s.remove();
+      }
+      if (skuEl) skuEl.textContent = cur.o;
+      var t = D.title + (label(cur) ? ' — ' + label(cur) : '');
+      if (addBtn) { addBtn.dataset.id = cur.o; addBtn.dataset.title = t; addBtn.dataset.price = cur.p; addBtn.dataset.img = D.small[cur.im[0]] || ''; }
+      $$('[data-order]').forEach(function (a) {
+        var m = 'Здравствуйте! Интересует: ' + t + ' (' + money(cur.p) + ')';
+        a.setAttribute('data-msg', m);
+        a.href = (a.getAttribute('data-order') === 'tg' ? TG : WA) + '?text=' + enc(m + '\n' + location.href);
+      });
+      if (mainImg && cur.im.length) {
+        var src = D.images[cur.im[0]];
+        if (mainImg.getAttribute('src') !== src) { mainImg.src = src; mainImg.alt = D.alts[cur.im[0]] || mainImg.alt; if (mainBox) mainBox.style.setProperty('--bg', 'url(' + src + ')'); }
+        var tb = $('.thumbs'); 
+        if (cur.im.length > 1) {
+          if (!tb) { tb = document.createElement('ul'); tb.className = 'thumbs'; gal.appendChild(tb); }
+          tb.innerHTML = cur.im.map(function (ix, i) { return '<li><button type="button" data-src="' + D.images[ix] + '" data-alt="' + esc(D.alts[ix]) + '"' + (i === 0 ? ' aria-current="true"' : '') + ' aria-label="Фото ' + (i + 1) + '"><img src="' + D.small[ix] + '" alt="" width="200" height="200" loading="lazy"></button></li>'; }).join('');
+        } else if (tb) tb.remove();
+      }
+    }
+    swatches.forEach(function (b) { b.addEventListener('click', function () { choose(b.getAttribute('data-color'), cur.s, 'c'); }); });
+    chips.forEach(function (b) { b.addEventListener('click', function () { choose(cur.c, b.getAttribute('data-size'), 's'); }); });
+    render();
+  })();
 
   /* ---------- hero slider ---------- */
   var hero = $('.hero');
