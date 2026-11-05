@@ -6,7 +6,7 @@
   var enc = encodeURIComponent;
   var money = function (n) { return Math.round(n).toLocaleString('ru-RU').replace(/ /g, ' ') + ' ₽'; };
 
-  /* ---------- preloader: стальные створки с клёпками ---------- */
+  /* ---------- preloader: подсветка надписи ---------- */
   (function () {
     var pl = $('#preloader'); if (!pl) return;
     var n = $('#pl-n'), bar = $('#pl-i'), t0 = performance.now(), loaded = false, shown = 0, closed = false;
@@ -14,12 +14,12 @@
       if (closed) return; closed = true;
       pl.classList.add('open');
       try { sessionStorage.setItem('pl', '1'); } catch (e) {}
-      setTimeout(function () { if (pl.parentNode) pl.parentNode.removeChild(pl); }, 1250);
+      setTimeout(function () { if (pl.parentNode) pl.parentNode.removeChild(pl); }, 1300);
     }
     function tick() {
       var el = performance.now() - t0, cap = loaded ? 100 : 88, goal = Math.min(cap, el / 14);
       shown += (goal - shown) * .18; if (loaded && shown > 99.4) shown = 100;
-      var v = Math.round(shown); if (n) n.textContent = v; if (bar) bar.style.transform = 'scaleX(' + (shown / 100) + ')';
+      var v = Math.round(shown); if (n) n.textContent = v; if (bar) bar.style.transform = 'scaleX(' + (shown / 100) + ')'; pl.style.setProperty('--p', (shown * 1.1 - 5).toFixed(1) + '%');
       if (shown >= 100 && el > 1300) { setTimeout(open, 180); return; }
       requestAnimationFrame(tick);
     }
@@ -189,15 +189,57 @@
     apply();
   }
 
+  /* ---------- размер браслета ---------- */
+  (function () {
+    var box = $('#sizepick'); if (!box) return;
+    var opts = $$('.sp-opt', box), cur = '', val = $('#sp-val');
+    window.ironSize = function () { return cur ? ' — размер ' + cur + ' см' : ''; };
+    function sync() {
+      if (window.__vrender) { window.__vrender(); return; }
+      var add = $('.buy [data-add]');
+      if (add) { if (!add.dataset.base) add.dataset.base = add.dataset.title; add.dataset.title = add.dataset.base + window.ironSize(); }
+      $$('[data-order]').forEach(function (a) {
+        if (!a.dataset.base) a.dataset.base = a.getAttribute('data-msg');
+        var m = a.dataset.base + window.ironSize();
+        a.setAttribute('data-msg', m);
+        a.href = (a.getAttribute('data-order') === 'tg' ? TG : WA) + '?text=' + enc(m + '\n' + location.href);
+      });
+    }
+    opts.forEach(function (b) {
+      b.addEventListener('click', function () {
+        cur = b.getAttribute('data-size');
+        opts.forEach(function (x) { var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', on); });
+        if (val) val.textContent = cur + ' см · ' + $('i', b).textContent;
+        box.classList.remove('need'); sync();
+      });
+    });
+    document.addEventListener('click', function (e) {
+      var add = e.target.closest('[data-add]'); if (!add || cur || !add.closest('.buy')) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      box.classList.add('need'); box.classList.remove('sp-shake'); void box.offsetWidth; box.classList.add('sp-shake');
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof toast === 'function') toast('Выберите размер браслета');
+    }, true);
+  })();
+
   /* ---------- gallery + lightbox + description ---------- */
   var main = $('#main-photo');
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest('.thumbs button'); if (!b || !main) return;
-    main.src = b.getAttribute('data-src'); var mb = $('.gallery .main'); if (mb) mb.style.setProperty('--bg', 'url(' + b.getAttribute('data-src') + ')'); main.alt = b.getAttribute('data-alt') || main.alt;
+    var mb = $('.gallery .main'), vEl = mb ? mb.querySelector('video') : null;
+    if (b.hasAttribute('data-video')) {
+      if (!vEl) { vEl = document.createElement('video'); vEl.setAttribute('playsinline', ''); vEl.muted = true; vEl.loop = true; vEl.controls = true; mb.appendChild(vEl); }
+      vEl.poster = b.getAttribute('data-poster') || ''; vEl.src = b.getAttribute('data-video'); var pr = vEl.play(); if (pr && pr.catch) pr.catch(function () {});
+      mb.classList.add('vid');
+    } else {
+      if (vEl) { vEl.pause(); vEl.remove(); } if (mb) mb.classList.remove('vid');
+      main.src = b.getAttribute('data-src'); if (mb) mb.style.setProperty('--bg', 'url(' + b.getAttribute('data-src') + ')'); main.alt = b.getAttribute('data-alt') || main.alt;
+    }
     $$('.thumbs button').forEach(function (x) { x.removeAttribute('aria-current'); }); b.setAttribute('aria-current', 'true');
   });
   var mainBox = $('.gallery .main');
   if (mainBox) mainBox.addEventListener('click', function () {
+    if (mainBox.classList.contains('vid')) return;
     var lb = document.createElement('div'); lb.className = 'lb'; lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', 'Увеличенное фото');
     lb.innerHTML = '<img src="' + main.src + '" alt="' + esc(main.alt) + '"><button type="button" aria-label="Закрыть">×</button>';
     lb.addEventListener('click', function () { lb.remove(); }); document.body.appendChild(lb);
@@ -229,7 +271,7 @@
         if (cur.po && cur.po > cur.p) { if (!s) { s = document.createElement('s'); big.appendChild(s); } s.textContent = money(cur.po); } else if (s) s.remove();
       }
       if (skuEl) skuEl.textContent = cur.o;
-      var t = D.title + (label(cur) ? ' — ' + label(cur) : '');
+      var t = D.title + (label(cur) ? ' — ' + label(cur) : '') + (window.ironSize ? window.ironSize() : '');
       if (addBtn) { addBtn.dataset.id = cur.o; addBtn.dataset.title = t; addBtn.dataset.price = cur.p; addBtn.dataset.img = D.small[cur.im[0]] || ''; }
       $$('[data-order]').forEach(function (a) {
         var m = 'Здравствуйте! Интересует: ' + t + ' (' + money(cur.p) + ')';
@@ -237,17 +279,19 @@
         a.href = (a.getAttribute('data-order') === 'tg' ? TG : WA) + '?text=' + enc(m + '\n' + location.href);
       });
       if (mainImg && cur.im.length) {
+        var vv = mainBox ? mainBox.querySelector('video') : null; if (vv) { vv.pause(); vv.remove(); mainBox.classList.remove('vid'); }
         var src = D.images[cur.im[0]];
         if (mainImg.getAttribute('src') !== src) { mainImg.src = src; mainImg.alt = D.alts[cur.im[0]] || mainImg.alt; if (mainBox) mainBox.style.setProperty('--bg', 'url(' + src + ')'); }
-        var tb = $('.thumbs'); 
+        var tb = $('.thumbs'); var vids = tb ? Array.prototype.map.call(tb.querySelectorAll('li.vid'), function (l) { return l.outerHTML; }).join('') : '';
         if (cur.im.length > 1) {
           if (!tb) { tb = document.createElement('ul'); tb.className = 'thumbs'; gal.appendChild(tb); }
-          tb.innerHTML = cur.im.map(function (ix, i) { return '<li><button type="button" data-src="' + D.images[ix] + '" data-alt="' + esc(D.alts[ix]) + '"' + (i === 0 ? ' aria-current="true"' : '') + ' aria-label="Фото ' + (i + 1) + '"><img src="' + D.small[ix] + '" alt="" width="200" height="200" loading="lazy"></button></li>'; }).join('');
-        } else if (tb) tb.remove();
+          tb.innerHTML = cur.im.map(function (ix, i) { return '<li><button type="button" data-src="' + D.images[ix] + '" data-alt="' + esc(D.alts[ix]) + '"' + (i === 0 ? ' aria-current="true"' : '') + ' aria-label="Фото ' + (i + 1) + '"><img src="' + D.small[ix] + '" alt="" width="200" height="200" loading="lazy"></button></li>'; }).join('') + vids;
+        } else if (tb && !vids) tb.remove(); else if (tb) tb.innerHTML = vids;
       }
     }
     swatches.forEach(function (b) { b.addEventListener('click', function () { choose(b.getAttribute('data-color'), cur.s, 'c'); }); });
     chips.forEach(function (b) { b.addEventListener('click', function () { choose(cur.c, b.getAttribute('data-size'), 's'); }); });
+    window.__vrender = render;
     render();
   })();
 
@@ -281,4 +325,55 @@
     stage.addEventListener('touchend', function (e) { if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1)); x0 = null; });
     show(0); schedule();
   }
+})();
+
+
+/* ---------- плавные анимации при скролле ---------- */
+(function () {
+  var d = document, reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+  var bar = d.createElement('div'); bar.className = 'scroll-bar'; bar.setAttribute('aria-hidden', 'true'); d.body.appendChild(bar);
+  var head = d.querySelector('.site-head');
+  var SEL = '.s-head,.card,.tile,.post,.seo,.box,.desc,.toolbar,.gallery,.buy,.cat-hero .in,.faq,section .wrap>h2';
+  var vh = window.innerHeight, items = [];
+  Array.prototype.forEach.call(d.querySelectorAll(SEL), function (el) {
+    if (el.parentElement && el.parentElement.closest(SEL)) return;
+    var r = el.getBoundingClientRect(); if (r.top < vh * 0.95 && r.bottom > 0) return;
+    var k = el.matches('.gallery') ? 'rv-l' : el.matches('.buy') ? 'rv-r' : el.matches('.card,.tile,.post') ? 'rv-card' : 'rv-up';
+    el.classList.add('rv', k); items.push(el);
+  });
+  var io = new IntersectionObserver(function (es) {
+    var vis = es.filter(function (x) { return x.isIntersecting; }).sort(function (a, b) { return a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left; });
+    vis.forEach(function (x, i) {
+      var el = x.target; io.unobserve(el);
+      var dl = Math.min(i, 6) * 70; el.style.setProperty('--d', dl + 'ms');
+      requestAnimationFrame(function () { el.classList.add('in'); });
+      setTimeout(function () { el.classList.remove('rv', 'rv-up', 'rv-l', 'rv-r', 'rv-card', 'in'); el.style.removeProperty('--d'); }, 1900 + dl);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+  items.forEach(function (el) { io.observe(el); });
+
+  var par = Array.prototype.slice.call(d.querySelectorAll('.cat-hero .bgimg,.tile img,.post .pv img'));
+  par.forEach(function (el) { el.setAttribute('data-par', ''); });
+  var lastY = window.pageYOffset, tick = false;
+  function frame() {
+    tick = false;
+    var y = window.pageYOffset, h = d.documentElement.scrollHeight - window.innerHeight;
+    bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, y / h) : 0) + ')';
+    if (head) {
+      var dy = y - lastY;
+      if (y > 160 && dy > 6 && !d.querySelector('.mm.on,.drawer.on,.lb')) head.classList.add('hide');
+      else if (dy < -6 || y < 160) head.classList.remove('hide');
+    }
+    lastY = y;
+    par.forEach(function (el) {
+      var p = el.parentElement; if (!p) return; var r = p.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) return;
+      var off = (r.top + r.height / 2 - window.innerHeight / 2) * -0.07, lim = r.height * 0.055;
+      el.style.translate = '0 ' + Math.max(-lim, Math.min(lim, off)).toFixed(1) + 'px';
+    });
+  }
+  function onScroll() { if (!tick) { tick = true; requestAnimationFrame(frame); } }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll); frame();
 })();
