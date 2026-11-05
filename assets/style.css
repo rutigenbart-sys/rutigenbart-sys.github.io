@@ -635,7 +635,26 @@ h2{font-size:clamp(1.2rem,2.5vw,1.85rem);line-height:1.25}
 .nav a::after{left:7px;right:7px}
 @media(max-width:1180px){.nav a{padding:10px 5px;font-size:.58rem;letter-spacing:.02em}.nav a::after{left:5px;right:5px}}
 
-.oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
+/* ---------- единый шрифт Radiotechnika везде + стальной номер телефона (v3.2) ---------- */
+@font-face{font-family:PhoneNum;font-style:normal;font-weight:400;font-display:swap;src:url(/assets/anton-digits.woff2) format('woff2')}
+:root{--display:Radiotechnika,Manrope,Inter,sans-serif;--body:Radiotechnika,Manrope,Inter,sans-serif}
+html{font-synthesis:none}
+body,button,input,select,textarea,.oz{font-family:Radiotechnika,Manrope,Inter,sans-serif}
+body{font-size:.86rem;letter-spacing:.012em;color:#d6dbe0}
+p,li,summary,label,input,textarea,select{letter-spacing:.012em}
+.ph{font-family:PhoneNum,Impact,"Arial Narrow",sans-serif;font-weight:400;font-size:1.25em;letter-spacing:.05em;line-height:1;display:inline-block;white-space:nowrap;vertical-align:-.05em;
+  color:#d5dade;
+  background:var(--grain2),
+    linear-gradient(90deg,rgba(0,0,0,.28),rgba(255,255,255,.18) 18%,rgba(0,0,0,.22) 34%,rgba(255,255,255,.2) 52%,rgba(0,0,0,.3) 70%,rgba(255,255,255,.18) 86%,rgba(0,0,0,.25)),
+    linear-gradient(180deg,#ffffff 0%,#b9c0c7 30%,#6f777f 48%,#eef1f3 62%,#9aa2aa 82%,#5e666e 100%);
+  background-size:700px 260px,100% 100%,100% 100%;background-blend-mode:soft-light,normal,normal;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.85)) drop-shadow(0 2px 5px rgba(0,0,0,.45))}
+.phone:hover .ph,.bigphone:hover .ph,a:hover>.ph{filter:brightness(1.25) drop-shadow(0 1px 0 rgba(0,0,0,.85))}
+.bigphone .ph{font-size:1.2em}
+h1:not(.tg){font-size:clamp(1.2rem,2.7vw,1.9rem)}
+
+.oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
 .oz:hover{transform:translateY(-4px);box-shadow:0 28px 80px rgba(0,91,255,.5)}
 .oz-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none}
 .oz-blob.b1{width:340px;height:340px;background:#f91155;right:-80px;top:-120px;animation:ozdrift 9s ease-in-out infinite alternate}
