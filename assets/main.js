@@ -257,9 +257,39 @@
   var mainBox = $('.gallery .main');
   if (mainBox) mainBox.addEventListener('click', function () {
     if (mainBox.classList.contains('vid')) return;
+    var items = $$('.thumbs button[data-src]').filter(function (b) { return !b.hasAttribute('data-video'); });
+    var idx = 0; items.forEach(function (b, k) { if (b.getAttribute('aria-current') === 'true') idx = k; });
+    var many = items.length > 1, swAt = 0;
     var lb = document.createElement('div'); lb.className = 'lb'; lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', 'Увеличенное фото');
-    lb.innerHTML = '<img src="' + main.src + '" alt="' + esc(main.alt) + '"><button type="button" aria-label="Закрыть">×</button>';
-    lb.addEventListener('click', function () { lb.remove(); }); document.body.appendChild(lb);
+    lb.innerHTML = '<img src="' + main.src + '" alt="' + esc(main.alt) + '"><button type="button" class="lb-x" aria-label="Закрыть">×</button>' +
+      (many ? '<button type="button" class="lb-nav p" aria-label="Предыдущее фото">‹</button><button type="button" class="lb-nav n" aria-label="Следующее фото">›</button><span class="lb-count"></span>' : '');
+    var im = lb.querySelector('img'), cn = lb.querySelector('.lb-count');
+    function show(k) {
+      if (!many) return; idx = (k + items.length) % items.length;
+      im.src = items[idx].getAttribute('data-src'); im.alt = items[idx].getAttribute('data-alt') || im.alt;
+      if (cn) cn.textContent = (idx + 1) + ' / ' + items.length;
+      items[idx].click();
+    }
+    if (cn) cn.textContent = (idx + 1) + ' / ' + items.length;
+    lb.addEventListener('click', function (e) {
+      var n = e.target.closest('.lb-nav');
+      if (n) { e.stopPropagation(); show(idx + (n.classList.contains('n') ? 1 : -1)); return; }
+      if (Date.now() - swAt < 450) return;
+      lb.remove();
+    });
+    var sx = 0, sy = 0;
+    lb.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+      var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (many && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) { swAt = Date.now(); show(idx + (dx < 0 ? 1 : -1)); }
+    }, { passive: true });
+    function key(e) {
+      if (!document.body.contains(lb)) { document.removeEventListener('keydown', key, true); return; }
+      if (e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); show(idx - 1); }
+      else if (e.key === 'ArrowRight') { e.stopImmediatePropagation(); e.preventDefault(); show(idx + 1); }
+    }
+    document.addEventListener('keydown', key, true);
+    document.body.appendChild(lb);
   });
   var more = $('.desc .more'), moreBtn = $('#more-btn');
   if (more && moreBtn) moreBtn.addEventListener('click', function () { var o = more.classList.toggle('open'); moreBtn.textContent = o ? 'Свернуть' : 'Читать полностью'; });
