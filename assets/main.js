@@ -377,3 +377,34 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll); frame();
 })();
+
+
+/* ---------- галерея товара: свайп и стрелки ---------- */
+(function () {
+  var d = document, box = d.querySelector('.gallery .main'); if (!box) return;
+  var img = d.getElementById('main-photo');
+  var cnt = d.createElement('span'); cnt.className = 'gcount'; cnt.setAttribute('aria-hidden', 'true'); box.appendChild(cnt);
+  function btns() { return Array.prototype.slice.call(d.querySelectorAll('.thumbs button')); }
+  function cur() { var b = btns(); for (var i = 0; i < b.length; i++) if (b[i].getAttribute('aria-current') === 'true') return i; return 0; }
+  function upd() { var b = btns(); cnt.style.display = b.length > 1 ? '' : 'none'; cnt.textContent = (cur() + 1) + ' / ' + b.length; }
+  function go(dir) {
+    var b = btns(); if (b.length < 2) return; var n = (cur() + dir + b.length) % b.length;
+    b[n].click();
+    if (img && !box.classList.contains('vid')) { img.classList.remove('sl-l', 'sl-r'); void img.offsetWidth; img.classList.add(dir > 0 ? 'sl-l' : 'sl-r'); }
+    upd();
+  }
+  ['p', 'n'].forEach(function (k) {
+    var b = d.createElement('button'); b.type = 'button'; b.className = 'gnav ' + k; b.setAttribute('aria-label', k === 'p' ? 'Предыдущее фото' : 'Следующее фото'); b.textContent = k === 'p' ? '‹' : '›';
+    b.addEventListener('click', function (e) { e.stopPropagation(); go(k === 'p' ? -1 : 1); }); box.appendChild(b);
+  });
+  var x0 = 0, y0 = 0, t0 = 0, on = false;
+  box.addEventListener('touchstart', function (e) { if (e.touches.length !== 1 || e.target.closest('video')) { on = false; return; } on = true; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); }, { passive: true });
+  box.addEventListener('touchend', function (e) {
+    if (!on) return; on = false; var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy) * 1.3 && Date.now() - t0 < 700) { go(dx < 0 ? 1 : -1); box.setAttribute('data-sw', '1'); setTimeout(function () { box.removeAttribute('data-sw'); }, 400); }
+  }, { passive: true });
+  box.addEventListener('click', function (e) { if (box.getAttribute('data-sw')) e.stopImmediatePropagation(); }, true);
+  d.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); });
+  d.addEventListener('click', function (e) { if (e.target.closest('.thumbs button, .swatch')) setTimeout(upd, 30); });
+  upd();
+})();
