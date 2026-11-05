@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  var TG = 'https://t.me/ironshopstore', WA = 'https://wa.me/79268542333';
+  var TG = 'https://t.me/i_s_moscow', WA = 'https://wa.me/79268542333';
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var enc = encodeURIComponent;
