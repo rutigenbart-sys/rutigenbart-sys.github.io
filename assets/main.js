@@ -516,13 +516,13 @@
         s.style.setProperty('--cw', r.width.toFixed(2) + 'px');
         s.style.setProperty('--x', (r.left - lr.left).toFixed(2) + 'px');
         s.style.setProperty('--w', lr.width.toFixed(2) + 'px');
-        s.style.setProperty('--d', (.15 + li * .38 + k * .045 + rnd() * .22).toFixed(3) + 's');
+        s.style.setProperty('--d', (.08 + li * .22 + k * .026 + rnd() * .12).toFixed(3) + 's');
         s.style.setProperty('--rz', ((rnd() - .5) * 40).toFixed(1) + 'deg');
         s.style.setProperty('--ry', ((rnd() - .5) * 120).toFixed(1) + 'px');
         s.dataset.f = s.textContent;
         if (!s.classList.contains('sp')) letters.push(s);
       });
-      st.style.setProperty('--sd', (2.9 + li * .35).toFixed(2) + 's');
+      st.style.setProperty('--sd', (1.8 + li * .25).toFixed(2) + 's');
     });
     h1.classList.add('sp-on');
   }
@@ -530,13 +530,13 @@
   function start() {
     if (started) return; started = true; h1.classList.add('go');
     var t0 = performance.now();
-    letters.forEach(function (s) { s._end = (parseFloat(s.style.getPropertyValue('--d')) + .55 + Math.random() * .35) * 1000; s._t = 0; });
+    letters.forEach(function (s) { s._end = (parseFloat(s.style.getPropertyValue('--d')) + .35 + Math.random() * .2) * 1000; s._t = 0; });
     (function tick(now) {
       var el = now - t0, alive = 0;
       letters.forEach(function (s) {
         if (el >= s._end) { if (s.textContent !== s.dataset.f) s.textContent = s.dataset.f; return; }
         alive++;
-        if (el - s._t > 55) { s._t = el; s.textContent = GLYPH.charAt((Math.random() * GLYPH.length) | 0); }
+        if (el - s._t > 40) { s._t = el; s.textContent = GLYPH.charAt((Math.random() * GLYPH.length) | 0); }
       });
       if (alive) requestAnimationFrame(tick); else h1.classList.add('done');
     })(t0);
