@@ -835,6 +835,15 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
   .tg-sub{align-self:stretch;text-align:center}
 }
 
+/* разработчик сайта */
+.dw{display:inline-flex;align-items:center;gap:8px;color:#8b9098;text-decoration:none;font-size:.8rem;transition:color .25s}
+.dw svg{width:18px;height:18px;flex:none}
+.dw b{font:400 .78rem/1 Radiotechnika,Manrope,Inter,sans-serif;letter-spacing:.08em;color:#c9ced3;transition:color .25s}
+.dw:hover,.dw:hover b{color:#fff}
+.site-foot .legal{flex-wrap:wrap;row-gap:10px}
+
+.site-foot .legal{padding-bottom:84px}
+
 .oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
 .oz:hover{transform:translateY(-4px);box-shadow:0 28px 80px rgba(0,91,255,.5)}
 .oz-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none}
