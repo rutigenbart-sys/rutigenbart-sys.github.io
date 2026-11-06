@@ -773,7 +773,7 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
 /* ---------- v6: прелоадер — руны → IRON SHOP, шипы влетают ---------- */
 .pl-word{perspective:900px;aspect-ratio:1000/205;position:relative;--fs:min(130px,14.2vw)}
 .pl-l,.pl-c{position:absolute;inset:0}
-.pl-l img,.pl-c img{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;will-change:transform,opacity,filter;
+.pl-l img,.pl-c img{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;will-change:transform,opacity;
   transform-origin:calc((var(--a) + var(--b)) * .5 * 1%) 75%}
 .pl-l img{clip-path:inset(38.5% calc(100% - var(--b) * 1%) 0 calc(var(--a) * 1%))}
 .pl-c img{clip-path:inset(0 calc(100% - var(--b) * 1%) 61.5% calc(var(--a) * 1%));transform-origin:calc((var(--a) + var(--b)) * .5 * 1%) 38%}
@@ -783,16 +783,16 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
 .pl-l.on .pl-r{opacity:0}
 .pl-l.on img{animation:plFlip .6s cubic-bezier(.2,.9,.25,1.15) both}
 @keyframes plFlip{
-  0%{opacity:0;transform:rotateX(-100deg) translateZ(-160px) scale(.7);filter:blur(10px) brightness(2.6)}
-  45%{opacity:1;filter:blur(0) brightness(2)}
-  78%{transform:rotateX(9deg) scale(1.03)}
-  100%{opacity:1;transform:none;filter:none}}
+  0%{opacity:0;transform:translate3d(0,40%,0) rotateX(-70deg) scale(.8)}
+  45%{opacity:1}
+  78%{transform:translate3d(0,0,0) rotateX(6deg) scale(1.02)}
+  100%{opacity:1;transform:none}}
 .pl-c0.on img{animation:plL .62s cubic-bezier(.2,.9,.25,1.1) both}
 .pl-c1.on img{animation:plT .62s cubic-bezier(.2,.9,.25,1.1) both}
 .pl-c2.on img{animation:plR .62s cubic-bezier(.2,.9,.25,1.1) both}
-@keyframes plL{0%{opacity:0;transform:translate(-90px,12px) rotate(-38deg) scale(.7);filter:brightness(3)}60%{opacity:1;filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
-@keyframes plR{0%{opacity:0;transform:translate(90px,12px) rotate(38deg) scale(.7);filter:brightness(3)}60%{opacity:1;filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
-@keyframes plT{0%{opacity:0;transform:translateY(-110px) scale(.6);filter:brightness(3)}60%{opacity:1;filter:brightness(2)}100%{opacity:1;transform:none;filter:none}}
+@keyframes plL{0%{opacity:0;transform:translate(-90px,12px) rotate(-38deg) scale(.7)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes plR{0%{opacity:0;transform:translate(90px,12px) rotate(38deg) scale(.7)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes plT{0%{opacity:0;transform:translateY(-110px) scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.pl-l img,.pl-c img{opacity:1;animation:none!important}.pl-r{display:none}}
 /* телефон: заголовок главной — всё по левому краю, средняя надпись по центру */
 @media(max-width:820px){
@@ -887,3 +887,39 @@ html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{
 .sw-row{display:flex;gap:5px;align-items:center;margin-top:6px;min-height:16px}
 .sw-row i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,.28);display:block}
 .sw-row span{font-size:.75rem;color:var(--muted)}
+
+
+/* ---------- v8: главный экран — руны → буквы, компактная вёрстка, без «грязи» на телефоне ---------- */
+html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{animation:none;will-change:auto;transform:none;opacity:1}
+.steel.hl{background:none!important;white-space:nowrap;
+  filter:drop-shadow(1px 0 0 #1a1d21) drop-shadow(0 1px 0 #1a1d21) drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+.hc{display:inline-flex;align-items:center;justify-content:center;vertical-align:top;
+  height:1.12em;height:1lh;line-height:inherit;letter-spacing:0;opacity:0;transition:opacity .14s linear;
+  background-image:
+    linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 40%,rgba(0,0,0,0) 55%,rgba(0,0,0,.42) 100%),
+    linear-gradient(96deg,#565d66 0%,#c4cbd2 11%,#fbfcfd 22%,#8a929b 36%,#e6eaee 50%,#ffffff 58%,#767e87 73%,#dde2e6 87%,#555c65 100%);
+  background-size:100% 100%,calc(var(--lw) * 1em) 100%;
+  background-position:0 0,calc(var(--x) * -1em) 0;background-repeat:no-repeat;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hc.run{opacity:.8}
+.hc.on{opacity:1}
+.hc.pop{animation:hcPop .42s cubic-bezier(.2,.9,.25,1.2)}
+@keyframes hcPop{0%{transform:translate3d(0,.06em,0) scale(1.08)}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.hc{opacity:1;transition:none}.hc.pop{animation:none}}
+
+@media(max-width:820px){
+  /* без зернистой текстуры (давала белые «пиксели») и без фильтров на видео */
+  .steel,h1:not(.tg),h2,.benefit h3,.tile h3,.fcols h2,.s-head a.more{
+    background-image:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 40%,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%),
+      linear-gradient(96deg,#565d66 0%,#c4cbd2 11%,#fbfcfd 22%,#8a929b 36%,#e6eaee 50%,#ffffff 58%,#767e87 73%,#dde2e6 87%,#555c65 100%);
+    background-size:100% 100%,100% 100%;background-blend-mode:normal}
+  .hero-vid video,.hero-vid img{filter:none}
+  .hero-vid video{transform:translateZ(0)}
+
+  /* надписи собраны вместе, прижаты к левому краю и опущены ближе к кнопкам */
+  .hero.vid .hero-copy{justify-content:flex-end}
+  .tg{margin:0;line-height:1.12}
+  .tg .tl+.tl{margin-top:.1em}
+  .tg-sub{margin:14px 0 0;padding:0;align-self:flex-start}
+  .hero-actions{margin-top:26px;padding-top:0}
+}
