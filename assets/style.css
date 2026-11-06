@@ -583,9 +583,7 @@ html:not(.js) .tg img{animation:none}
   filter:drop-shadow(1px 0 0 #1a1d21) drop-shadow(-1px 0 0 #1a1d21) drop-shadow(0 1px 0 #1a1d21) drop-shadow(0 -1px 0 rgba(255,255,255,.28)) drop-shadow(0 8px 16px rgba(0,0,0,.55));
 }
 .tg{margin:0 0 14px;font:400 min(62px,5.4vw)/1.12 Radiotechnika,Manrope,Inter,sans-serif;letter-spacing:.02em;text-transform:uppercase;text-align:left}
-.tg .tl{display:block;white-space:nowrap;margin:0;opacity:0;transform:translateY(.4em);filter:blur(8px);
-  transition:opacity .9s cubic-bezier(.16,.9,.2,1),transform .9s cubic-bezier(.16,.9,.2,1),filter .9s;transition-delay:calc(.2s + var(--i) * .14s)}
-html.ready .tg .tl,html:not(.js) .tg .tl{opacity:1;transform:none;filter:none}
+.tg .tl{display:block;white-space:nowrap;margin:0}
 .tg-sub{margin:0 0 4px;font:400 min(22px,2vw)/1.3 Radiotechnika,Manrope,Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase}
 .tg-sub .steel{filter:drop-shadow(1px 0 0 #1a1d21) drop-shadow(0 1px 0 #1a1d21) drop-shadow(0 4px 8px rgba(0,0,0,.5))}
 .hero-actions .btn{font-family:Radiotechnika,Manrope,Inter,sans-serif;letter-spacing:.07em;text-transform:uppercase;font-size:.8rem;font-weight:400}
@@ -594,7 +592,6 @@ html.ready .tg .tl,html:not(.js) .tg .tl{opacity:1;transform:none;filter:none}
   .tg{font-size:min(7vw,52px);line-height:1.14}
   .tg-sub{font-size:min(3.4vw,17px);letter-spacing:.1em}
 }
-@media(prefers-reduced-motion:reduce){.tg .tl{transition:none;opacity:1;transform:none;filter:none}}
 
 @media(min-width:821px){.hero.vid .hero-grid{padding-left:20px;padding-right:20px}}
 
@@ -760,37 +757,6 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
 .tile .cap{z-index:1}
 .tile h3,.tile .n{text-shadow:0 1px 6px rgba(0,0,0,.6)}
 
-/* v5: заголовок главной — кинетика по буквам */
-@property --sp{syntax:'<percentage>';inherits:true;initial-value:-40%}
-.tg.sp-on{perspective:900px;transform:perspective(900px) rotateX(var(--ty,0deg)) rotateY(var(--tx,0deg));transition:transform .25s ease-out}
-.tg.sp-on .tl{transition:none;opacity:1;transform:none;filter:none}
-.tg .steel.split{background:none;-webkit-text-fill-color:initial;color:transparent;animation:chSweep 6s linear infinite;animation-delay:var(--sd,3s);animation-play-state:paused}
-.tg.fin .steel.split{animation-play-state:running}
-.tg .ch{display:inline-block;width:var(--cw);text-align:center;white-space:pre;opacity:0;
-  transform:translateY(calc(var(--h,0) * -.1em)) scale(calc(1 + var(--h,0) * .06));
-  filter:brightness(calc(1 + var(--h,0) * .7));
-  transition:transform .25s ease-out,filter .25s ease-out;
-  background-image:
-    linear-gradient(105deg,transparent calc(var(--sp) - 9%),rgba(255,255,255,.95) var(--sp),transparent calc(var(--sp) + 9%)),
-    var(--grain2),
-    linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 40%,rgba(0,0,0,0) 55%,rgba(0,0,0,.42) 100%),
-    linear-gradient(96deg,#565d66 0%,#c4cbd2 11%,#fbfcfd 22%,#8a929b 36%,#e6eaee 50%,#ffffff 58%,#767e87 73%,#dde2e6 87%,#555c65 100%);
-  background-size:var(--w) 100%,700px 260px,100% 100%,var(--w) 100%;
-  background-position:calc(var(--x) * -1) 0,0 0,0 0,calc(var(--x) * -1) 0;
-  background-repeat:no-repeat,repeat,no-repeat,no-repeat;
-  background-blend-mode:normal,soft-light,normal,normal;
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.tg.go .ch{animation:chIn .62s cubic-bezier(.17,.9,.25,1.12) var(--d) backwards;opacity:1}
-@keyframes chIn{
-  0%{opacity:0;transform:perspective(700px) translate3d(var(--ry),.7em,-260px) rotateX(-95deg) rotateZ(var(--rz)) scale(.6);filter:blur(12px) brightness(2.6)}
-  45%{opacity:1}
-  62%{filter:blur(0) brightness(2.1)}
-  80%{transform:perspective(700px) translate3d(0,-.05em,0) rotateX(8deg) scale(1.03)}
-  100%{transform:none;filter:none}}
-@keyframes chSweep{0%{--sp:-40%}38%{--sp:140%}100%{--sp:140%}}
-.tg-sub .steel{animation:subIn .8s cubic-bezier(.16,.9,.2,1) 1.2s backwards}
-@keyframes subIn{0%{opacity:0;letter-spacing:.55em;transform:translateY(.5em);filter:blur(10px)}100%{opacity:1;letter-spacing:inherit;transform:none}}
-@media(max-width:820px){.tg.sp-on{transform:none}}
 
 /* v5.1: номер телефона — шрифт Radiotechnika и тот же стальной цвет, что у заголовков */
 .phn{font-family:Radiotechnika,Manrope,Inter,sans-serif;font-weight:400;font-size:1em;letter-spacing:.05em;line-height:1.15;display:inline-block;white-space:nowrap;vertical-align:baseline;
@@ -832,7 +798,6 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
 @media(max-width:820px){
   .hero.vid .hero-grid{padding-left:20px;padding-right:20px}
   .tg{font-size:min(6.6vw,48px)}
-  .tg-sub{align-self:stretch;text-align:center}
 }
 
 /* разработчик сайта */
@@ -843,6 +808,25 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
 .site-foot .legal{flex-wrap:wrap;row-gap:10px}
 
 .site-foot .legal{padding-bottom:84px}
+
+/* ---------- v7: первый экран — финальная версия ----------
+   Анимация только на transform+opacity (GPU, без blur/3D/letter-spacing/пересчёта раскладки).
+   Старт строго после загрузки шрифта и снятия прелоадера — поэтому нет «прыжков» и помех. */
+.tg .tl,.tg-sub{opacity:0;transform:translate3d(0,22px,0)}
+html:not(.js) .tg .tl,html:not(.js) .tg-sub,
+html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{opacity:1;transform:none}
+html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{
+  animation:heroIn 1s cubic-bezier(.22,.8,.24,1) backwards;
+  animation-delay:calc(.1s + var(--i,0) * .13s);will-change:transform,opacity}
+.tg-sub{--i:3}
+@keyframes heroIn{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media(prefers-reduced-motion:reduce){.tg .tl,.tg-sub{opacity:1!important;transform:none!important;animation:none!important}}
+/* телефон: всё по одному левому краю; подзаголовок — по центру свободного места между заголовком и кнопками */
+@media(max-width:820px){
+  .hero.vid .hero-copy{align-items:flex-start;text-align:left}
+  .tg-sub{align-self:flex-start;text-align:left;margin:auto 0;padding:24px 0}
+  .hero-actions{margin-top:0;padding-top:0}
+}
 
 .oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
 .oz:hover{transform:translateY(-4px);box-shadow:0 28px 80px rgba(0,91,255,.5)}
