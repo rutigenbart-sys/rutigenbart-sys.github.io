@@ -415,7 +415,7 @@ a.inl,.prose a,.seo a{color:var(--brass2);text-underline-offset:3px}
   .phone{display:none}
 }
 @media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important}
+  body *:not(.tg):not(.tg *),*::before,*::after{animation:none!important;transition:none!important}
   html{scroll-behavior:auto}
 }
 /* mobile menu */
@@ -791,6 +791,18 @@ h1,h2,h3,.benefit h3{word-break:normal;overflow-wrap:break-word;-webkit-hyphens:
 .tg-sub .steel{animation:subIn 1.3s cubic-bezier(.16,.9,.2,1) 2.1s backwards}
 @keyframes subIn{0%{opacity:0;letter-spacing:.55em;transform:translateY(.5em);filter:blur(10px)}100%{opacity:1;letter-spacing:inherit;transform:none}}
 @media(max-width:820px){.tg.sp-on{transform:none}}
+
+/* v5.1: номер телефона — шрифт Radiotechnika и тот же стальной цвет, что у заголовков */
+.phn{font-family:Radiotechnika,Manrope,Inter,sans-serif;font-weight:400;font-size:1em;letter-spacing:.05em;line-height:1.15;display:inline-block;white-space:nowrap;vertical-align:baseline;
+  color:#d5dade;
+  background:var(--grain2),
+    linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 40%,rgba(0,0,0,0) 55%,rgba(0,0,0,.32) 100%),
+    linear-gradient(96deg,#7a828b 0%,#c4cbd2 11%,#fbfcfd 22%,#9aa2ab 36%,#e6eaee 50%,#ffffff 58%,#8a929b 73%,#dde2e6 87%,#7a828b 100%);
+  background-size:700px 260px,100% 100%,100% 100%;background-blend-mode:soft-light,normal,normal;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;-webkit-text-stroke:.03em transparent;
+  filter:drop-shadow(1px 0 0 #1a1d21) drop-shadow(-1px 0 0 #1a1d21) drop-shadow(0 1px 0 #1a1d21) drop-shadow(0 3px 6px rgba(0,0,0,.5))}
+.bigphone .phn{font-size:1em}
+.msg .phn,.mm .phn{font-size:1em}
 
 .oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
 .oz:hover{transform:translateY(-4px);box-shadow:0 28px 80px rgba(0,91,255,.5)}

@@ -157,7 +157,7 @@
         }
       })
       .catch(function () {
-        msgBox.innerHTML = '<div class="msg err" role="alert">Не получилось отправить автоматически. <a href="' + fallbackLink(text) + '" target="_blank" rel="noopener">Отправить в Telegram</a> или позвоните <a href="tel:+79268542333">+7 926 854-23-33</a>.</div>';
+        msgBox.innerHTML = '<div class="msg err" role="alert">Не получилось отправить автоматически. <a href="' + fallbackLink(text) + '" target="_blank" rel="noopener">Отправить в Telegram</a> или позвоните <a href="tel:+79268542333"><span class="phn">+7 926 854-23-33</span></a>.</div>';
       })
       .then(function () { btn.disabled = false; btn.textContent = label; });
   }
@@ -496,7 +496,7 @@
 (function () {
   'use strict';
   var h1 = document.querySelector('h1.tg');
-  if (!h1 || (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches)) return;
+  if (!h1) return;
   var root = document.documentElement, lines = [].slice.call(h1.querySelectorAll('.tl'));
   var GLYPH = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ#%/\\<>+=', letters = [], started = false;
 
