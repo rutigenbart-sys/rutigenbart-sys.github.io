@@ -491,3 +491,81 @@
     }
   }).catch(function () {});
 })();
+
+/* ---------- v5: главный заголовок — расшифровка букв + 3D-посадка + блик по стали ---------- */
+(function () {
+  'use strict';
+  var h1 = document.querySelector('h1.tg');
+  if (!h1 || (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches)) return;
+  var root = document.documentElement, lines = [].slice.call(h1.querySelectorAll('.tl'));
+  var GLYPH = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ#%/\\<>+=', letters = [], started = false;
+
+  function split() {
+    var seed = 7, rnd = function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    lines.forEach(function (tl, li) {
+      var st = tl.querySelector('.steel'); if (!st) return;
+      var txt = st.textContent, out = document.createDocumentFragment(), chars = [];
+      for (var i = 0; i < txt.length; i++) {
+        var s = document.createElement('span'), c = txt.charAt(i);
+        s.className = c === ' ' ? 'ch sp' : 'ch'; s.textContent = c === ' ' ? ' ' : c; out.appendChild(s); chars.push(s);
+      }
+      st.textContent = ''; st.appendChild(out); st.classList.add('split');
+      var lr = st.getBoundingClientRect();
+      chars.forEach(function (s, k) {
+        var r = s.getBoundingClientRect();
+        s.style.setProperty('--cw', r.width.toFixed(2) + 'px');
+        s.style.setProperty('--x', (r.left - lr.left).toFixed(2) + 'px');
+        s.style.setProperty('--w', lr.width.toFixed(2) + 'px');
+        s.style.setProperty('--d', (.15 + li * .38 + k * .045 + rnd() * .22).toFixed(3) + 's');
+        s.style.setProperty('--rz', ((rnd() - .5) * 40).toFixed(1) + 'deg');
+        s.style.setProperty('--ry', ((rnd() - .5) * 120).toFixed(1) + 'px');
+        s.dataset.f = s.textContent;
+        if (!s.classList.contains('sp')) letters.push(s);
+      });
+      st.style.setProperty('--sd', (2.9 + li * .35).toFixed(2) + 's');
+    });
+    h1.classList.add('sp-on');
+  }
+
+  function start() {
+    if (started) return; started = true; h1.classList.add('go');
+    var t0 = performance.now();
+    letters.forEach(function (s) { s._end = (parseFloat(s.style.getPropertyValue('--d')) + .55 + Math.random() * .35) * 1000; s._t = 0; });
+    (function tick(now) {
+      var el = now - t0, alive = 0;
+      letters.forEach(function (s) {
+        if (el >= s._end) { if (s.textContent !== s.dataset.f) s.textContent = s.dataset.f; return; }
+        alive++;
+        if (el - s._t > 55) { s._t = el; s.textContent = GLYPH.charAt((Math.random() * GLYPH.length) | 0); }
+      });
+      if (alive) requestAnimationFrame(tick); else h1.classList.add('done');
+    })(t0);
+  }
+
+  function watch() {
+    if (root.classList.contains('ready')) { start(); return; }
+    var mo = new MutationObserver(function () { if (root.classList.contains('ready')) { mo.disconnect(); start(); } });
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] });
+    setTimeout(function () { mo.disconnect(); start(); }, 7500);
+  }
+
+  var go = function () { try { split(); } catch (e) { return; } watch(); };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else window.addEventListener('load', go);
+
+  /* реакция на курсор: буквы рядом с указателем приподнимаются и вспыхивают, заголовок слегка наклоняется */
+  if (window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches) {
+    var raf = 0, mx = 0, my = 0;
+    window.addEventListener('mousemove', function (e) {
+      mx = e.clientX; my = e.clientY; if (raf || !h1.classList.contains('done')) return;
+      raf = requestAnimationFrame(function () {
+        raf = 0; var b = h1.getBoundingClientRect();
+        h1.style.setProperty('--tx', (((mx - (b.left + b.width / 2)) / innerWidth) * 7).toFixed(2) + 'deg');
+        h1.style.setProperty('--ty', ((-(my - (b.top + b.height / 2)) / innerHeight) * 5).toFixed(2) + 'deg');
+        letters.forEach(function (s) {
+          var r = s.getBoundingClientRect(), dx = mx - (r.left + r.width / 2), dy = my - (r.top + r.height / 2), d = Math.sqrt(dx * dx + dy * dy);
+          s.style.setProperty('--h', Math.max(0, 1 - d / 150).toFixed(3));
+        });
+      });
+    }, { passive: true });
+  }
+})();
