@@ -11,18 +11,22 @@
     var rd = function () { document.documentElement.classList.add('ready'); };
     setTimeout(rd, 6500);
     var pl = $('#preloader'); if (!pl || getComputedStyle(pl).display === 'none') { rd(); return; }
-    var n = $('#pl-n'), bar = $('#pl-i'), t0 = performance.now(), loaded = false, shown = 0, closed = false;
+    var n = $('#pl-n'), bar = $('#pl-i'), t0 = performance.now(), loaded = false, shown = 0, closed = false, last = -1;
     function open() {
       if (closed) return; closed = true;
       pl.classList.add('open'); rd();
       try { sessionStorage.setItem('pl', '1'); } catch (e) {}
       setTimeout(function () { if (pl.parentNode) pl.parentNode.removeChild(pl); }, 1300);
     }
-    function tick() {
-      var el = performance.now() - t0, cap = loaded ? 100 : 88, goal = Math.min(cap, el / 14);
-      shown += (goal - shown) * .18; if (loaded && shown > 99.4) shown = 100;
-      var v = Math.round(shown); if (n) n.textContent = v; if (bar) bar.style.transform = 'scaleX(' + (shown / 100) + ')'; pl.style.setProperty('--p', (shown * 1.1 - 5).toFixed(1) + '%');
-      if (shown >= 100 && el > 2500) { setTimeout(open, 180); return; }
+    /* прогресс: плавно по времени (линейно до 90%), добирает до 100% сразу после готовности шрифта и постера */
+    function tick(now) {
+      var el = now - t0, cap = loaded ? 100 : 90, goal = Math.min(cap, el / 22);
+      shown += (goal - shown) * (loaded ? .12 : .1);
+      if (loaded && shown > 99.5) shown = 100;
+      var v = Math.round(shown);
+      if (v !== last) { last = v; if (n) n.textContent = v; }
+      if (bar) bar.style.transform = 'scaleX(' + (shown / 100).toFixed(3) + ')';
+      if (shown >= 100 && el > 2300) { setTimeout(open, 160); return; }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
@@ -40,9 +44,12 @@
       });
       Cs.forEach(function (c, i) { setTimeout(function () { c.classList.add('on'); }, 1450 + i * 150); });
     })();
-    function ok() { loaded = true; }
-    if (document.readyState === 'complete') ok(); else window.addEventListener('load', ok);
-    setTimeout(function () { loaded = true; }, 3500); setTimeout(open, 5200);
+    /* ждём только шрифт заголовка и постер героя, а не всю страницу */
+    var need = 2, ok = function () { if (--need <= 0) loaded = true; };
+    try { if (document.fonts && document.fonts.load) document.fonts.load('1em Radiotechnika', 'Эксклюзивные').then(ok, ok); else ok(); } catch (e) { ok(); }
+    var pimg = $('.hero-vid img');
+    if (!pimg || (pimg.complete && pimg.naturalWidth)) ok(); else { pimg.addEventListener('load', ok); pimg.addEventListener('error', ok); }
+    setTimeout(function () { loaded = true; }, 3200); setTimeout(open, 4600);
   })();
 
   /* ---------- toast ---------- */
@@ -515,6 +522,79 @@
   try {
     if (document.fonts && document.fonts.load) document.fonts.load('1em Radiotechnika', 'Эксклюзивные').then(ok, ok); else ok();
   } catch (e) { ok(); }
+})();
+
+/* ---------- главный экран: буквы «переливаются» рунами и собираются в слова ---------- */
+(function () {
+  'use strict';
+  var root = document.documentElement, started = false;
+  var RUN = 'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ';
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function lines() { return Array.prototype.slice.call(document.querySelectorAll('.tg .tl .steel, .tg-sub .steel')); }
+
+  function build(el) {
+    var node = el.firstChild;
+    if (!node || node.nodeType !== 3) return null;
+    var txt = node.nodeValue, fs = parseFloat(getComputedStyle(el).fontSize) || 16;
+    var rg = document.createRange(), base = el.getBoundingClientRect().left, items = [];
+    for (var i = 0; i < txt.length; i++) {
+      rg.setStart(node, i); rg.setEnd(node, i + 1);
+      var r = rg.getBoundingClientRect();
+      items.push({ ch: txt.charAt(i), x: (r.left - base) / fs, w: r.width / fs });
+    }
+    var total = el.getBoundingClientRect().width / fs, frag = document.createDocumentFragment(), out = [];
+    items.forEach(function (it) {
+      var sp = document.createElement('span');
+      sp.className = 'hc'; sp.textContent = it.ch === ' ' ? ' ' : it.ch;
+      sp.style.cssText = 'width:' + it.w.toFixed(4) + 'em;--x:' + it.x.toFixed(4) + ';--lw:' + total.toFixed(4);
+      frag.appendChild(sp);
+      out.push({ el: sp, ch: it.ch, space: it.ch === ' ' });
+    });
+    el.textContent = ''; el.classList.add('hl'); el.appendChild(frag);
+    return out;
+  }
+
+  function start() {
+    if (started) return; started = true;
+    var els = lines(), chars = [];
+    try {
+      els.forEach(function (el, li) {
+        var cs = build(el); if (!cs) return;
+        cs.forEach(function (c, ci) {
+          c.t0 = 90 + li * 190 + ci * 34;            /* когда начинает мерцать */
+          c.dur = 430 + ((ci * 53 + li * 31) % 7) * 50; /* сколько мерцает до буквы */
+          c.k = ci * 7 + li * 11; c.state = 0; c.tick = -1;
+          chars.push(c);
+        });
+      });
+    } catch (e) { root.classList.remove('hx'); return; }
+    if (!chars.length) { root.classList.remove('hx'); return; }
+    root.classList.add('hx');
+    if (reduce) { chars.forEach(function (c) { c.el.classList.add('on'); }); return; }
+    var t0 = performance.now(), left = chars.length;
+    (function frame(now) {
+      var t = now - t0;
+      chars.forEach(function (c) {
+        if (c.state === 2) return;
+        var d = t - c.t0;
+        if (d < 0) return;
+        if (c.space) { c.el.classList.add('on'); c.state = 2; left--; return; }
+        if (d >= c.dur) {
+          c.el.textContent = c.ch; c.el.classList.remove('run'); c.el.classList.add('on', 'pop'); c.state = 2; left--; return;
+        }
+        if (c.state === 0) { c.state = 1; c.el.classList.add('run'); }
+        var k = Math.floor(d / 62);
+        if (k !== c.tick) { c.tick = k; c.el.textContent = RUN.charAt((c.k + k * 5) % RUN.length); }
+      });
+      if (left > 0) requestAnimationFrame(frame);
+    })(t0);
+  }
+
+  function check() { if (root.classList.contains('ready') && root.classList.contains('fonts-ok')) { mo && mo.disconnect(); start(); } }
+  var mo = null;
+  if (!root.classList.contains('js')) return;
+  if ('MutationObserver' in window) { mo = new MutationObserver(check); mo.observe(root, { attributes: true, attributeFilter: ['class'] }); }
+  check(); setTimeout(function () { if (!started && root.classList.contains('fonts-ok')) start(); }, 7000);
 })();
 
 /* ---------- фото из админ-панели (photos.json) ---------- */
