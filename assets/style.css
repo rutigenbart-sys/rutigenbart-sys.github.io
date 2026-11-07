@@ -879,26 +879,42 @@ html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{animation:none;will-chan
   .hero-actions{margin-top:28px;padding-top:0;width:100%;max-width:none;gap:12px}
 }
 
-.oz{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;background:linear-gradient(120deg,#0a3cff 0%,#005bff 45%,#7a2cff 100%);color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;box-shadow:0 20px 60px rgba(0,91,255,.35);transition:transform .35s,box-shadow .35s}
-.oz:hover{transform:translateY(-4px);box-shadow:0 28px 80px rgba(0,91,255,.5)}
-.oz-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;pointer-events:none}
-.oz-blob.b1{width:340px;height:340px;background:#f91155;right:-80px;top:-120px;animation:ozdrift 9s ease-in-out infinite alternate}
-.oz-blob.b2{width:280px;height:280px;background:#00c6ff;left:-90px;bottom:-130px;animation:ozdrift 11s ease-in-out infinite alternate-reverse}
+/* ===== OZON plate: black brushed metal + Ozon blue/pink ===== */
+.oz{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;
+  background:
+    radial-gradient(circle at 18px 18px,#9aa1a9 0 2px,#3a3e44 3px,transparent 4.5px),
+    radial-gradient(circle at calc(100% - 18px) 18px,#9aa1a9 0 2px,#3a3e44 3px,transparent 4.5px),
+    radial-gradient(circle at 18px calc(100% - 18px),#9aa1a9 0 2px,#3a3e44 3px,transparent 4.5px),
+    radial-gradient(circle at calc(100% - 18px) calc(100% - 18px),#9aa1a9 0 2px,#3a3e44 3px,transparent 4.5px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,rgba(0,0,0,.05) 1px 3px),
+    linear-gradient(100deg,transparent 0 18%,rgba(255,255,255,.09) 28%,transparent 38%,transparent 58%,rgba(255,255,255,.06) 70%,transparent 82%),
+    linear-gradient(135deg,#202328 0%,#0b0c0e 38%,#17191d 62%,#07080a 100%);
+  box-shadow:0 0 0 1px #000,0 0 0 2px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(0,0,0,.8),inset 0 0 60px rgba(0,0,0,.55),0 24px 60px rgba(0,0,0,.6),0 10px 50px rgba(0,91,255,.22);
+  transition:transform .35s,box-shadow .35s}
+.oz::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:var(--grain2);background-size:700px 260px;mix-blend-mode:soft-light;opacity:.55}
+.oz::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;z-index:3;pointer-events:none;background:linear-gradient(90deg,#005bff,#7a2cff 55%,#f91155);box-shadow:0 0 18px 2px rgba(0,91,255,.7),0 0 30px 4px rgba(249,17,85,.35)}
+.oz:hover{transform:translateY(-4px);box-shadow:0 0 0 1px #000,0 0 0 2px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 60px rgba(0,0,0,.5),0 30px 80px rgba(0,0,0,.7),0 12px 70px rgba(0,91,255,.5)}
+.oz-blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.38;pointer-events:none;z-index:0}
+.oz-blob.b1{width:340px;height:340px;background:#005bff;right:-60px;top:-120px;animation:ozdrift 9s ease-in-out infinite alternate}
+.oz-blob.b2{width:260px;height:260px;background:#f91155;left:-90px;bottom:-150px;opacity:.28;animation:ozdrift 11s ease-in-out infinite alternate-reverse}
 @keyframes ozdrift{to{transform:translate(40px,30px) scale(1.15)}}
-.oz-shine{position:absolute;top:0;bottom:0;width:90px;left:-150px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:ozshine 5s ease-in-out infinite;pointer-events:none;z-index:3}
+.oz-shine{position:absolute;top:0;bottom:0;width:110px;left:-150px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),rgba(190,215,255,.22),transparent);transform:skewX(-20deg);animation:ozshine 5s ease-in-out infinite;pointer-events:none;z-index:4;mix-blend-mode:screen}
 @keyframes ozshine{0%{left:-150px}40%,100%{left:120%}}
 .oz-txt{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;max-width:460px}
-.oz-tag{padding:7px 14px;border-radius:10px;background:rgba(255,255,255,.18);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
-.oz-h{margin-top:18px;font-size:clamp(38px,6vw,72px);font-weight:900;line-height:1;letter-spacing:-.02em}
-.oz-p{margin-top:14px;font-size:clamp(15px,1.8vw,19px);line-height:1.4;opacity:.92}
-.oz-btn{margin-top:28px;display:inline-flex;align-items:center;gap:10px;padding:16px 30px;border-radius:8px;background:#f91155;font-size:16px;font-weight:800;box-shadow:0 0 0 0 rgba(249,17,85,.7);animation:ozpulse 2s infinite;transition:background .3s}
+.oz-tag{display:inline-flex;align-items:center;gap:9px;padding:8px 15px 8px 12px;border-radius:10px;background:linear-gradient(180deg,#1a6bff,#0045d6);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 0 1px rgba(0,0,0,.6),0 4px 18px rgba(0,91,255,.55);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.oz-tag::before{content:"";width:9px;height:9px;border-radius:50%;background:#f91155;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 10px #f91155}
+.oz-h{margin-top:18px;font-size:clamp(38px,6vw,72px);font-weight:400;line-height:1;letter-spacing:.02em;text-transform:uppercase;color:#c9ced3;
+  background:var(--grain2),linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 40%,rgba(0,0,0,0) 55%,rgba(0,0,0,.4) 100%),linear-gradient(96deg,#565d66 0%,#c4cbd2 11%,#fbfcfd 22%,#8a929b 36%,#e6eaee 50%,#ffffff 58%,#767e87 73%,#dde2e6 87%,#555c65 100%);
+  background-size:700px 260px,100% 100%,100% 100%;background-blend-mode:soft-light,normal,normal;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 0 #000) drop-shadow(0 5px 12px rgba(0,0,0,.7))}
+.oz-p{margin-top:14px;font-size:clamp(15px,1.8vw,19px);line-height:1.4;color:#c3c9d0}
+.oz-btn{margin-top:28px;display:inline-flex;align-items:center;gap:10px;padding:16px 30px;border-radius:8px;background:linear-gradient(180deg,#ff3d78 0%,#f91155 50%,#d10a44 100%);font-size:16px;font-weight:800;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 1px rgba(0,0,0,.6),0 0 0 0 rgba(249,17,85,.7);animation:ozpulse 2s infinite;transition:filter .3s}
 .oz-btn b{display:inline-block;transition:transform .3s}
-.oz:hover .oz-btn{background:#ff2d6f}
+.oz:hover .oz-btn{filter:brightness(1.15)}
 .oz:hover .oz-btn b{transform:translateX(6px)}
-@keyframes ozpulse{70%{box-shadow:0 0 0 16px rgba(249,17,85,0)}100%{box-shadow:0 0 0 0 rgba(249,17,85,0)}}
+@keyframes ozpulse{70%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 1px rgba(0,0,0,.6),0 0 0 16px rgba(249,17,85,0)}100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 1px rgba(0,0,0,.6),0 0 0 0 rgba(249,17,85,0)}}
 
 .oz-cards{position:relative;z-index:2;flex:0 0 440px;height:340px}
-.oz-c{position:absolute;width:160px;padding:8px 8px 10px;border-radius:10px;background:#fff;color:#111;box-shadow:0 18px 44px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:4px;animation:ozfloat 5s ease-in-out infinite}
+.oz-c{position:absolute;width:160px;padding:8px 8px 10px;border-radius:10px;background:#fff;color:#111;box-shadow:0 0 0 1px rgba(255,255,255,.55),0 0 0 3px rgba(0,0,0,.45),0 18px 44px rgba(0,0,0,.7);display:flex;flex-direction:column;gap:4px;animation:ozfloat 5s ease-in-out infinite}
 .oz-c img{display:block;width:100%;height:200px;object-fit:cover;border-radius:7px;background:#111}
 .oz-c em{font-style:normal;font-weight:800;font-size:15px;padding:4px 4px 0}
 .oz-c u{text-decoration:none;color:#ffa800;font-size:12px;letter-spacing:1px;padding:0 4px}
@@ -966,3 +982,5 @@ html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{animation:none;will-chan
 .bento .tile img[data-par],.bento .tile img{scale:1!important;translate:none!important}
 .bento .tile:hover img{transform:scale(1.03)}
 .bento .tile h3,.bento .tile .n{text-shadow:none}
+@media(prefers-reduced-motion:reduce){.oz-shine,.oz-blob,.oz-c,.oz-btn{animation:none}}
+@media(hover:none){.oz:hover{transform:none}}
