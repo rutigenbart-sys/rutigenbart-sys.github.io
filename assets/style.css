@@ -984,3 +984,18 @@ html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{animation:none;will-chan
 .bento .tile h3,.bento .tile .n{text-shadow:none}
 @media(prefers-reduced-motion:reduce){.oz-shine,.oz-blob,.oz-c,.oz-btn{animation:none}}
 @media(hover:none){.oz:hover{transform:none}}
+
+/* ===== читаемость: заголовки без зерна, текст на Manrope (главный экран с видео не трогаем) ===== */
+h1:not(.tg),h2,h3,.benefit h3,.tile h3,.fcols h2,.s-head a.more{
+  background:linear-gradient(180deg,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 45%,rgba(0,0,0,.25) 100%),linear-gradient(96deg,#7d858e 0%,#d3d9de 14%,#ffffff 28%,#aeb5bc 42%,#eef1f3 58%,#ffffff 66%,#a3abb3 82%,#e2e6ea 100%);
+  background-size:100% 100%;background-blend-mode:normal;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:.05em;line-height:1.25;
+  filter:drop-shadow(0 1px 0 #000) drop-shadow(0 2px 3px rgba(0,0,0,.6));
+}
+main :is(p,li,details,summary,dd):not(.hero *):not(.oz *):not(.card *):not(.tile *):not(.tg-sub),
+.prose,.article .lead,.site-foot p{
+  font-family:Manrope,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:0;
+}
+.prose p,.prose li,.seo p,.seo li{line-height:1.7;color:#d6dadf}
+.prose a,.seo a,a.inl,main p a,main li a{text-decoration:none}
