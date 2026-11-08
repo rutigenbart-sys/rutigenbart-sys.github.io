@@ -1033,3 +1033,8 @@ html.lb-open,html.lb-open body{overflow:hidden}
   .post h3{font-size:.84rem;line-height:1.28;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
   .post p{display:none}
 }
+
+/* ---- лайтбокс: картинка целиком в окне на десктопе ---- */
+.lb-slide{padding:28px 96px}
+.lb-slide img{max-width:min(100%,calc(100vw - 200px));max-height:calc(100vh - 56px);max-height:calc(100dvh - 56px)}
+@media(max-width:820px){.lb-slide{padding:10px}.lb-slide img{max-width:100%;max-height:calc(100dvh - 20px)}}
