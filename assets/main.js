@@ -641,32 +641,39 @@
 
 
 /* ---------- листание фото в карточке по движению мыши (только мышь, не тач) ---------- */
+/* шаг одинаковый для всех карточек: один кадр на STEP px движения, не чаще раза в GAP мс, с плавным переходом */
 (function () {
   'use strict';
   if (!window.matchMedia || !matchMedia('(hover:hover) and (pointer:fine)').matches) return;
-  var d = document, cur = null;
+  var d = document, cur = null, STEP = 110, GAP = 220;
+  function dots(sc) { for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === sc.i ? 'on' : ''; }
   function setup(card) {
-    var raw = card.getAttribute('data-ph'), ph = card.querySelector('.ph'), img = ph && ph.querySelector('img');
+    var raw = card.getAttribute('data-ph'), ph = card.querySelector('.ph'), img = ph && ph.querySelector('img:not(.ph-x)');
     if (card._sc && card._sc.raw === raw) return card._sc;
-    if (card._sc) { var od = ph && ph.querySelector('.ph-dots'); if (od) od.remove(); card._sc = null; }
+    if (card._sc) { var o = ph && ph.querySelectorAll('.ph-dots,.ph-x'); if (o) for (var q = 0; q < o.length; q++) o[q].remove(); card._sc = null; }
     if (!raw || !ph || !img) return null;
     var list = raw.split('|').filter(Boolean); if (list.length < 2) return null;
-    var dots = d.createElement('div'); dots.className = 'ph-dots'; dots.setAttribute('aria-hidden', 'true');
-    dots.innerHTML = list.map(function () { return '<i></i>'; }).join('');
-    ph.appendChild(dots);
+    var dd = d.createElement('div'); dd.className = 'ph-dots'; dd.setAttribute('aria-hidden', 'true');
+    dd.innerHTML = list.map(function () { return '<i></i>'; }).join('');
+    ph.appendChild(dd);
+    var x = new Image(); x.className = 'ph-x'; x.alt = ''; x.setAttribute('aria-hidden', 'true'); ph.appendChild(x);
     list.slice(1).forEach(function (u) { var p = new Image(); p.decoding = 'async'; p.src = u; });
-    card._sc = { raw: raw, list: list, ph: ph, img: img, dots: dots.children, i: 0, src0: img.getAttribute('src') };
+    card._sc = { raw: raw, list: list, ph: ph, img: img, x: x, dots: dd.children, i: 0, src0: img.getAttribute('src'), acc: 0, lx: null, t: 0, tm: 0 };
     return card._sc;
   }
-  function show(sc, i) {
-    if (i === sc.i) return; sc.i = i;
-    sc.img.src = i === 0 ? sc.src0 : sc.list[i];
-    for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === i ? 'on' : '';
+  function show(sc, i, instant) {
+    if (i === sc.i) return; sc.i = i; dots(sc);
+    var u = i === 0 ? sc.src0 : sc.list[i], x = sc.x, img = sc.img;
+    clearTimeout(sc.tm);
+    if (instant) { x.style.opacity = 0; img.src = u; return; }
+    x.style.transition = 'none'; x.style.opacity = 0; x.src = u; void x.offsetWidth;
+    x.style.transition = ''; x.style.opacity = 1;
+    sc.tm = setTimeout(function () { img.src = u; x.style.transition = 'none'; x.style.opacity = 0; }, 340);
   }
   function reset(card) {
     var sc = card._sc; if (!sc) return;
-    sc.img.src = sc.src0; sc.i = 0;
-    for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === 0 ? 'on' : '';
+    clearTimeout(sc.tm); sc.x.style.transition = 'none'; sc.x.style.opacity = 0;
+    sc.img.src = sc.src0; sc.i = 0; sc.acc = 0; sc.lx = null; dots(sc);
   }
   d.addEventListener('mousemove', function (e) {
     var card = e.target.closest ? e.target.closest('li.card[data-ph]') : null;
@@ -676,9 +683,16 @@
     var r = ph.getBoundingClientRect();
     if (e.clientY < r.top || e.clientY > r.bottom) return;
     var sc = setup(card); if (!sc) return;
-    if (cur !== card) { cur = card; sc.i = 0; sc.src0 = sc.img.getAttribute('src'); for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === 0 ? 'on' : ''; }
-    var n = sc.list.length, x = Math.max(0, Math.min(r.width - 1, e.clientX - r.left));
-    show(sc, Math.min(n - 1, Math.floor(x / r.width * n)));
+    if (cur !== card) { cur = card; sc.i = 0; sc.acc = 0; sc.lx = e.clientX; sc.t = 0; sc.src0 = sc.img.getAttribute('src'); dots(sc); return; }
+    var dx = e.clientX - sc.lx; sc.lx = e.clientX;
+    if (sc.acc * dx < 0) sc.acc = 0;
+    sc.acc += dx;
+    var now = Date.now();
+    if (Math.abs(sc.acc) < STEP || now - sc.t < GAP) return;
+    var dir = sc.acc > 0 ? 1 : -1, n = sc.list.length, ni = sc.i + dir;
+    sc.acc = 0;
+    if (ni < 0 || ni > n - 1) return;
+    sc.t = now; show(sc, ni);
   }, { passive: true });
   d.addEventListener('mouseout', function (e) { if (!e.relatedTarget && cur) { reset(cur); cur = null; } });
 })();
