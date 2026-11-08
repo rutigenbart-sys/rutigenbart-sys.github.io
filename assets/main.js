@@ -489,7 +489,8 @@
   }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
   items.forEach(function (el) { io.observe(el); });
 
-  var par = Array.prototype.slice.call(d.querySelectorAll('.cat-hero .bgimg,.tile img,.post .pv img'));
+  var touchOnly = window.matchMedia && matchMedia('(hover: none)').matches;
+  var par = touchOnly ? [] : Array.prototype.slice.call(d.querySelectorAll('.cat-hero .bgimg,.tile img,.post .pv img'));
   par.forEach(function (el) { el.setAttribute('data-par', ''); });
   var lastY = window.pageYOffset, tick = false;
   function frame() {
@@ -773,17 +774,23 @@
   window.addEventListener('wheel', cancel, { passive: true });
   window.addEventListener('touchmove', cancel, { passive: true });
   function scrollToEl(el) {
-    var y0 = window.pageYOffset, y = Math.max(0, el.getBoundingClientRect().top + y0 - 8), dist = y - y0;
+    var y0 = window.pageYOffset, y = Math.max(0, Math.round(el.getBoundingClientRect().top + y0 - 8)), dist = y - y0;
     var my = ++token;
-    root.style.scrollBehavior = 'auto';
-    if (reduce || Math.abs(dist) < 2) { window.scrollTo(0, y); root.style.scrollBehavior = ''; return; }
-    var t0 = performance.now(), dur = Math.min(900, 380 + Math.abs(dist) * 0.2);
-    (function step(now) {
-      if (my !== token) return;
-      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-      window.scrollTo(0, y0 + dist * e);
-      if (p < 1) requestAnimationFrame(step); else root.style.scrollBehavior = '';
-    })(t0);
+    if (Math.abs(dist) < 2) return;
+    if (reduce) { window.scrollTo(0, y); return; }
+    try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch (_) { window.scrollTo(0, y); }
+    /* если браузер не начал нативную прокрутку — крутим вручную */
+    setTimeout(function () {
+      if (my !== token || Math.abs(window.pageYOffset - y0) > 4) return;
+      root.style.scrollBehavior = 'auto';
+      var t0 = performance.now(), dur = Math.min(800, 350 + Math.abs(dist) * 0.2);
+      (function step(now) {
+        if (my !== token) return;
+        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        window.scrollTo(0, y0 + dist * e);
+        if (p < 1) requestAnimationFrame(step); else root.style.scrollBehavior = '';
+      })(t0);
+    }, 140);
   }
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button) return;
@@ -798,4 +805,14 @@
   if (location.hash.length > 1) window.addEventListener('load', function () {
     var el = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (el) setTimeout(function () { scrollToEl(el); }, 350);
   });
+})();
+
+/* ---------- видео в шапке: пауза, когда оно не на экране ---------- */
+(function () {
+  var v = document.querySelector('.hero-vid video'); if (!v || !('IntersectionObserver' in window)) return;
+  new IntersectionObserver(function (es) {
+    es.forEach(function (x) {
+      if (x.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause();
+    });
+  }, { threshold: 0.01 }).observe(v);
 })();
