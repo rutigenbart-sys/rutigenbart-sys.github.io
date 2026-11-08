@@ -1023,3 +1023,13 @@ html.lb-open,html.lb-open body{overflow:hidden}
   a,button{-webkit-tap-highlight-color:transparent}
 }
 .btn,.burger,.cbtn,.fab-btn,[data-cart-open]{touch-action:manipulation}
+
+/* ---- статьи: две колонки на телефонах ---- */
+@media(max-width:760px){
+  .posts{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .post .pv{aspect-ratio:4/5}
+  .post .b{padding:10px 11px 13px;gap:5px}
+  .post time{font-size:.68rem}
+  .post h3{font-size:.84rem;line-height:1.28;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+  .post p{display:none}
+}
