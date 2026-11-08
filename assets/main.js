@@ -610,6 +610,7 @@
       var u = '/' + o.l[0], ph = li.querySelector('.ph'), im = ph && ph.querySelector('img');
       if (im) im.src = u; if (ph) ph.style.setProperty('--bg', 'url(' + u + ')');
       var add = li.querySelector('[data-add]'); if (add) add.setAttribute('data-img', small(o.l[0]));
+      if (o.l.length > 1) li.setAttribute('data-ph', o.l.slice(0, 6).map(function (f) { return '/' + f; }).join('|')); else li.removeAttribute('data-ph');
     });
     var big = d.querySelector('.big[data-pid]'); if (!big) return;
     var o = J.p[big.getAttribute('data-pid')]; if (!o || !o.l || !o.l.length) return;
@@ -636,4 +637,48 @@
       } else if (tb) tb.remove();
     }
   }).catch(function () {});
+})();
+
+
+/* ---------- листание фото в карточке по движению мыши (только мышь, не тач) ---------- */
+(function () {
+  'use strict';
+  if (!window.matchMedia || !matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  var d = document, cur = null;
+  function setup(card) {
+    var raw = card.getAttribute('data-ph'), ph = card.querySelector('.ph'), img = ph && ph.querySelector('img');
+    if (card._sc && card._sc.raw === raw) return card._sc;
+    if (card._sc) { var od = ph && ph.querySelector('.ph-dots'); if (od) od.remove(); card._sc = null; }
+    if (!raw || !ph || !img) return null;
+    var list = raw.split('|').filter(Boolean); if (list.length < 2) return null;
+    var dots = d.createElement('div'); dots.className = 'ph-dots'; dots.setAttribute('aria-hidden', 'true');
+    dots.innerHTML = list.map(function () { return '<i></i>'; }).join('');
+    ph.appendChild(dots);
+    list.slice(1).forEach(function (u) { var p = new Image(); p.decoding = 'async'; p.src = u; });
+    card._sc = { raw: raw, list: list, ph: ph, img: img, dots: dots.children, i: 0, src0: img.getAttribute('src') };
+    return card._sc;
+  }
+  function show(sc, i) {
+    if (i === sc.i) return; sc.i = i;
+    sc.img.src = i === 0 ? sc.src0 : sc.list[i];
+    for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === i ? 'on' : '';
+  }
+  function reset(card) {
+    var sc = card._sc; if (!sc) return;
+    sc.img.src = sc.src0; sc.i = 0;
+    for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === 0 ? 'on' : '';
+  }
+  d.addEventListener('mousemove', function (e) {
+    var card = e.target.closest ? e.target.closest('li.card[data-ph]') : null;
+    if (cur && cur !== card) { reset(cur); cur = null; }
+    if (!card) return;
+    var ph = card.querySelector('.ph'); if (!ph) return;
+    var r = ph.getBoundingClientRect();
+    if (e.clientY < r.top || e.clientY > r.bottom) return;
+    var sc = setup(card); if (!sc) return;
+    if (cur !== card) { cur = card; sc.i = 0; sc.src0 = sc.img.getAttribute('src'); for (var k = 0; k < sc.dots.length; k++) sc.dots[k].className = k === 0 ? 'on' : ''; }
+    var n = sc.list.length, x = Math.max(0, Math.min(r.width - 1, e.clientX - r.left));
+    show(sc, Math.min(n - 1, Math.floor(x / r.width * n)));
+  }, { passive: true });
+  d.addEventListener('mouseout', function (e) { if (!e.relatedTarget && cur) { reset(cur); cur = null; } });
 })();
