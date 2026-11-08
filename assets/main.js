@@ -141,7 +141,7 @@
     }
   });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeCart(); var lb = $('.lb'); if (lb) lb.remove(); if (fab) fab.classList.remove('on'); }
+    if (e.key === 'Escape') { closeCart(); var lb = $('.lb'); if (lb) { if (lb._close) lb._close(); else lb.remove(); } if (fab) fab.classList.remove('on'); }
   });
   badge();
 
@@ -277,39 +277,107 @@
   });
   var mainBox = $('.gallery .main');
   if (mainBox) mainBox.addEventListener('click', function () {
-    if (mainBox.classList.contains('vid')) return;
+    if (mainBox.classList.contains('vid') || $('.lb')) return;
     var items = $$('.thumbs button[data-src]').filter(function (b) { return !b.hasAttribute('data-video'); });
-    var idx = 0; items.forEach(function (b, k) { if (b.getAttribute('aria-current') === 'true') idx = k; });
-    var many = items.length > 1, swAt = 0;
+    var N = items.length || 1, many = N > 1, idx0 = 0, idx;
+    items.forEach(function (b, k) { if (b.getAttribute('aria-current') === 'true') idx0 = k; });
+    idx = idx0;
+    var srcs = items.length ? items.map(function (b) { return b.getAttribute('data-src'); }) : [main.src];
+    var alts = items.length ? items.map(function (b) { return b.getAttribute('data-alt') || main.alt; }) : [main.alt];
     var lb = document.createElement('div'); lb.className = 'lb'; lb.setAttribute('role', 'dialog'); lb.setAttribute('aria-label', 'Увеличенное фото');
-    lb.innerHTML = '<img src="' + main.src + '" alt="' + esc(main.alt) + '"><button type="button" class="lb-x" aria-label="Закрыть">×</button>' +
+    var h = '<div class="lb-track">';
+    for (var k = 0; k < N; k++) h += '<div class="lb-slide"><img alt="' + esc(alts[k]) + '" draggable="false" decoding="async"></div>';
+    h += '</div><button type="button" class="lb-x" aria-label="Закрыть">×</button>' +
       (many ? '<button type="button" class="lb-nav p" aria-label="Предыдущее фото">‹</button><button type="button" class="lb-nav n" aria-label="Следующее фото">›</button><span class="lb-count"></span>' : '');
-    var im = lb.querySelector('img'), cn = lb.querySelector('.lb-count');
-    function show(k) {
-      if (!many) return; idx = (k + items.length) % items.length;
-      im.src = items[idx].getAttribute('data-src'); im.alt = items[idx].getAttribute('data-alt') || im.alt;
-      if (cn) cn.textContent = (idx + 1) + ' / ' + items.length;
-      items[idx].click();
+    lb.innerHTML = h;
+    var track = lb.querySelector('.lb-track'), imgs = $$('img', lb), cn = lb.querySelector('.lb-count');
+    var W = window.innerWidth, closed = false;
+    function load(i) {
+      if (i < 0 || i >= N) return; var im = imgs[i]; if (im.getAttribute('src')) return;
+      im.src = srcs[i]; if (im.decode) im.decode().catch(function () {});
     }
-    if (cn) cn.textContent = (idx + 1) + ' / ' + items.length;
-    lb.addEventListener('click', function (e) {
-      var n = e.target.closest('.lb-nav');
-      if (n) { e.stopPropagation(); show(idx + (n.classList.contains('n') ? 1 : -1)); return; }
-      if (Date.now() - swAt < 450) return;
-      lb.remove();
+    function near(i) { load(i); load(i + 1); load(i - 1); }
+    function setX(px, anim) {
+      track.style.transition = anim ? 'transform .34s cubic-bezier(.22,.8,.24,1)' : 'none';
+      track.style.transform = 'translate3d(' + px + 'px,0,0)';
+    }
+    function show(i, anim) {
+      idx = i; near(i); setX(-i * W, anim);
+      if (cn) cn.textContent = (i + 1) + ' / ' + N;
+    }
+    function go(i) { show((i + N) % N, false); }
+    near(idx); show(idx, false);
+    (function idle(i) { if (closed || i >= N) return; load(i); setTimeout(function () { idle(i + 1); }, 160); })(0);
+
+    var sx = 0, sy = 0, dx = 0, dy = 0, mode = 0, pid = null, moved = false, px = 0, pt = 0, vel = 0, raf = 0;
+    function paint() {
+      raf = 0;
+      if (mode === 2) {
+        var x = dx; if ((idx === 0 && dx > 0) || (idx === N - 1 && dx < 0)) x = dx * 0.33;
+        setX(-idx * W + x, false);
+      } else if (mode === 3) {
+        track.style.transition = 'none';
+        track.style.transform = 'translate3d(' + (-idx * W) + 'px,' + dy + 'px,0)';
+        lb.style.backgroundColor = 'rgba(5,6,7,' + (0.94 * (1 - Math.min(1, Math.abs(dy) / 420))).toFixed(3) + ')';
+      }
+    }
+    lb.addEventListener('pointerdown', function (e) {
+      moved = false;
+      if (pid !== null || e.target.closest('button')) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      pid = e.pointerId; sx = px = e.clientX; sy = e.clientY; pt = Date.now(); dx = dy = vel = 0; mode = 1; moved = false; W = window.innerWidth;
+      try { lb.setPointerCapture(pid); } catch (_) {}
     });
-    var sx = 0, sy = 0;
-    lb.addEventListener('touchstart', function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
-    lb.addEventListener('touchend', function (e) {
-      var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-      if (many && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) { swAt = Date.now(); show(idx + (dx < 0 ? 1 : -1)); }
-    }, { passive: true });
+    lb.addEventListener('pointermove', function (e) {
+      if (e.pointerId !== pid) return;
+      dx = e.clientX - sx; dy = e.clientY - sy;
+      var now = Date.now();
+      if (now > pt) { vel = 0.7 * vel + 0.3 * ((e.clientX - px) / (now - pt)); px = e.clientX; pt = now; }
+      if (mode === 1) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        mode = Math.abs(dx) >= Math.abs(dy) ? (many ? 2 : 4) : 3; moved = true;
+      }
+      if (mode === 2 || mode === 3) { if (!raf) raf = requestAnimationFrame(paint); }
+    });
+    function end(e) {
+      if (e.pointerId !== pid) return;
+      pid = null; try { lb.releasePointerCapture(e.pointerId); } catch (_) {}
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      if (Date.now() - pt > 90) vel = 0;
+      if (mode === 2) {
+        var thr = Math.min(80, W * 0.18), nx = idx;
+        if (e.type === 'pointerup') { if (dx < -thr || vel < -0.4) nx = idx + 1; else if (dx > thr || vel > 0.4) nx = idx - 1; }
+        show(Math.max(0, Math.min(N - 1, nx)), true);
+      } else if (mode === 3) {
+        if (e.type === 'pointerup' && (Math.abs(dy) > 110 || Math.abs(dy) > 50 && Math.abs(dy) / Math.max(1, Date.now() - pt) > 0.5)) { close(); }
+        else { lb.style.backgroundColor = ''; setX(-idx * W, true); }
+      }
+      mode = 0;
+    }
+    lb.addEventListener('pointerup', end); lb.addEventListener('pointercancel', end);
+    lb.addEventListener('click', function (e) {
+      var nv = e.target.closest('.lb-nav');
+      if (nv) { e.stopPropagation(); go(idx + (nv.classList.contains('n') ? 1 : -1)); return; }
+      if (e.target.closest('.lb-x')) { close(); return; }
+      if (moved) { moved = false; return; }
+      close();
+    });
+    function onResize() { W = window.innerWidth; setX(-idx * W, false); }
+    window.addEventListener('resize', onResize);
     function key(e) {
-      if (!document.body.contains(lb)) { document.removeEventListener('keydown', key, true); return; }
-      if (e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); show(idx - 1); }
-      else if (e.key === 'ArrowRight') { e.stopImmediatePropagation(); e.preventDefault(); show(idx + 1); }
+      if (e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); go(idx - 1); }
+      else if (e.key === 'ArrowRight') { e.stopImmediatePropagation(); e.preventDefault(); go(idx + 1); }
+      else if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); }
     }
     document.addEventListener('keydown', key, true);
+    function close() {
+      if (closed) return; closed = true;
+      document.removeEventListener('keydown', key, true); window.removeEventListener('resize', onResize);
+      document.documentElement.classList.remove('lb-open'); lb.remove();
+      if (items.length && idx !== idx0) items[idx].click();
+    }
+    lb._close = close;
+    document.documentElement.classList.add('lb-open');
     document.body.appendChild(lb);
   });
   var more = $('.desc .more'), moreBtn = $('#more-btn');
@@ -695,4 +763,39 @@
     sc.t = now; show(sc, ni);
   }, { passive: true });
   d.addEventListener('mouseout', function (e) { if (!e.relatedTarget && cur) { reset(cur); cur = null; } });
+})();
+
+/* ---------- якоря: надёжная прокрутка (iOS Safari / Яндекс.Браузер) ---------- */
+(function () {
+  var root = document.documentElement, token = 0;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function cancel() { token++; root.style.scrollBehavior = ''; }
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchmove', cancel, { passive: true });
+  function scrollToEl(el) {
+    var y0 = window.pageYOffset, y = Math.max(0, el.getBoundingClientRect().top + y0 - 8), dist = y - y0;
+    var my = ++token;
+    root.style.scrollBehavior = 'auto';
+    if (reduce || Math.abs(dist) < 2) { window.scrollTo(0, y); root.style.scrollBehavior = ''; return; }
+    var t0 = performance.now(), dur = Math.min(900, 380 + Math.abs(dist) * 0.2);
+    (function step(now) {
+      if (my !== token) return;
+      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      window.scrollTo(0, y0 + dist * e);
+      if (p < 1) requestAnimationFrame(step); else root.style.scrollBehavior = '';
+    })(t0);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button) return;
+    var a = e.target.closest && e.target.closest('a[href*="#"]'); if (!a || a.target === '_blank') return;
+    var u; try { u = new URL(a.getAttribute('href'), location.href); } catch (_) { return; }
+    if (u.origin !== location.origin || u.pathname.replace(/index\.html$/, '') !== location.pathname.replace(/index\.html$/, '') || u.hash.length < 2) return;
+    var el; try { el = document.getElementById(decodeURIComponent(u.hash.slice(1))); } catch (_) { return; }
+    if (!el) return;
+    e.preventDefault(); root.style.overflow = ''; scrollToEl(el);
+    try { history.replaceState(null, '', u.hash); } catch (_) {}
+  });
+  if (location.hash.length > 1) window.addEventListener('load', function () {
+    var el = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (el) setTimeout(function () { scrollToEl(el); }, 350);
+  });
 })();

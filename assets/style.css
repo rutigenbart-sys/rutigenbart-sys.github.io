@@ -1000,3 +1000,15 @@ main :is(p,li,details,summary,dd):not(.hero *):not(.oz *):not(.card *):not(.tile
 }
 .prose p,.prose li,.seo p,.seo li{line-height:1.7;color:#d6dadf}
 .prose a,.seo a,a.inl,main p a,main li a{text-decoration:none}
+
+/* ---- лайтбокс: слайдер за пальцем ---- */
+html.lb-open,html.lb-open body{overflow:hidden}
+.lb{display:block;padding:0;overflow:hidden;touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab;background:rgba(5,6,7,.94)}
+.lb:active{cursor:grabbing}
+.lb-track{display:flex;height:100%;width:100%;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.lb-slide{flex:0 0 100%;width:100%;height:100%;display:grid;place-items:center;padding:24px;box-sizing:border-box;overflow:hidden}
+.lb-slide img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:6px;background:#fff;pointer-events:none;-webkit-user-drag:none;transform:translateZ(0)}
+.lb .lb-nav{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(40,42,46,.72)}
+.lb .lb-x{z-index:3}
+@media(max-width:820px){.lb-slide{padding:10px}}
+
