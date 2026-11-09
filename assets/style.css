@@ -917,6 +917,14 @@ a,button,.btn,.thumbs button,.gnav,.fab-main,summary{touch-action:manipulation;-
 .gallery .main{touch-action:pan-y;-webkit-touch-callout:none}
 .gallery .main img{will-change:transform}
 
+/* ---------- фикс: плавающая кнопка чата не перекрывает соседние кнопки ----------
+   Контейнер .fab (с невидимым списком контактов) растягивался на пол-экрана и перехватывал тапы
+   по правой части «Смотреть каталог». Теперь нажимается только сама круглая кнопка и открытое меню. */
+.fab{pointer-events:none}
+.fab-main{pointer-events:auto}
+.fab.on .fab-list a{pointer-events:auto}
+.fab-list{width:max-content}
+
 /* ===== OZON plate: black brushed metal + Ozon blue/pink ===== */
 .oz{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;
   background:
