@@ -925,6 +925,10 @@ a,button,.btn,.thumbs button,.gnav,.fab-main,summary{touch-action:manipulation;-
 .fab.on .fab-list a{pointer-events:auto}
 .fab-list{width:max-content}
 
+/* ---------- прелоадер на 30% меньше (надпись, руны и шкала) ---------- */
+.pl-stage{width:min(532px,calc((100vw - 56px) * .7));gap:18px}
+.pl-word{--fs:min(91px,9.94vw)}
+
 /* ===== OZON plate: black brushed metal + Ozon blue/pink ===== */
 .oz{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;
   background:
