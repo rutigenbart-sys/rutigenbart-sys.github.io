@@ -257,7 +257,7 @@
   (function () {
     if (!main) return;
     var list = $$('.thumbs button[data-src]').map(function (b) { return b.getAttribute('data-src'); }), i = 0;
-    function next() { if (i >= list.length) return; warm(list[i++]); (window.requestIdleCallback || function (f) { setTimeout(f, 120); })(next); }
+    function next() { if (i >= Math.min(list.length, 3)) return; warm(list[i++]); (window.requestIdleCallback || function (f) { setTimeout(f, 120); })(next); }
     function start() { (window.requestIdleCallback || function (f) { setTimeout(f, 300); })(next); }
     if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
     document.addEventListener('pointerover', function (e) { var b = e.target.closest && e.target.closest('.thumbs button[data-src]'); if (b) warm(b.getAttribute('data-src')); }, { passive: true });
@@ -492,10 +492,12 @@
   var touchOnly = window.matchMedia && matchMedia('(hover: none)').matches;
   var par = touchOnly ? [] : Array.prototype.slice.call(d.querySelectorAll('.cat-hero .bgimg,.tile img,.post .pv img'));
   par.forEach(function (el) { el.setAttribute('data-par', ''); });
-  var lastY = window.pageYOffset, tick = false;
+  var lastY = window.pageYOffset, tick = false, docH = 0, docT = 0;
+  /* высоту страницы не читаем на каждом кадре скролла (это форсирует layout и даёт рывки) — обновляем раз в 700 мс */
+  function pageH() { var n = Date.now(); if (!docH || n - docT > 700) { docH = d.documentElement.scrollHeight - window.innerHeight; docT = n; } return docH; }
   function frame() {
     tick = false;
-    var y = window.pageYOffset, h = d.documentElement.scrollHeight - window.innerHeight;
+    var y = window.pageYOffset, h = pageH();
     bar.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, y / h) : 0) + ')';
     if (head) {
       var dy = y - lastY;
@@ -512,65 +514,120 @@
   }
   function onScroll() { if (!tick) { tick = true; requestAnimationFrame(frame); } }
   window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll); frame();
+  window.addEventListener('resize', function () { docH = 0; onScroll(); }); window.addEventListener('load', function () { docH = 0; });
+  frame();
 })();
 
 
-/* ---------- галерея товара: свайп и стрелки ---------- */
+/* ---------- галерея товара: нативная карусель (scroll-snap) ---------- */
+/* Лента из всех фото лежит внутри .main и листается пальцем нативно (как в Instagram/Ozon): фото едет за пальцем,
+   следующее уже видно и загружено, примагничивается ровно на один кадр. Миниатюры, счётчик, стрелки и лайтбокс синхронизированы. */
 (function () {
   var d = document, box = d.querySelector('.gallery .main'); if (!box) return;
-  var img = d.getElementById('main-photo');
+  var gal = box.parentNode, img0 = d.getElementById('main-photo');
+  var track = d.createElement('div'); track.className = 'gtrack'; box.appendChild(track);
   var cnt = d.createElement('span'); cnt.className = 'gcount'; cnt.setAttribute('aria-hidden', 'true'); box.appendChild(cnt);
-  function btns() { return Array.prototype.slice.call(d.querySelectorAll('.thumbs button')); }
-  function cur() { var b = btns(); for (var i = 0; i < b.length; i++) if (b[i].getAttribute('aria-current') === 'true') return i; return 0; }
-  function upd() { var b = btns(); cnt.style.display = b.length > 1 ? '' : 'none'; cnt.textContent = (cur() + 1) + ' / ' + b.length; }
-  function go(dir) {
-    var b = btns(); if (b.length < 2) return; var n = (cur() + dir + b.length) % b.length;
-    window.__slDir = dir; b[n].click(); window.__slDir = 0;
-    upd();
-  }
   ['p', 'n'].forEach(function (k) {
     var b = d.createElement('button'); b.type = 'button'; b.className = 'gnav ' + k; b.setAttribute('aria-label', k === 'p' ? 'Предыдущее фото' : 'Следующее фото'); b.textContent = k === 'p' ? '‹' : '›';
     b.addEventListener('click', function (e) { e.stopPropagation(); go(k === 'p' ? -1 : 1); }); box.appendChild(b);
   });
-  /* свайп: pointer events + захват пальца, палец ведёт фото, порог по расстоянию или скорости */
-  var sx = 0, sy = 0, pid = null, axis = 0, dx = 0, vx = 0, lx = 0, lt = 0, W = 320;
-  function near() { var b = btns().filter(function (x) { return !x.hasAttribute('data-video'); }), c = cur(); [1, -1, 2].forEach(function (k) { var t = b[(c + k + b.length) % b.length]; if (t && window.__warm) window.__warm(t.getAttribute('data-src')); }); }
-  function settle() { if (!img) return; img.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; img.style.transform = ''; setTimeout(function () { img.style.transition = ''; }, 260); }
-  box.addEventListener('pointerdown', function (e) {
-    if (e.pointerType === 'mouse' || pid !== null || e.target.closest('video, .gnav')) return;
-    pid = e.pointerId; sx = lx = e.clientX; sy = e.clientY; lt = Date.now(); axis = 0; dx = 0; vx = 0; W = box.clientWidth || 320; near();
-  });
-  box.addEventListener('pointermove', function (e) {
-    if (e.pointerId !== pid) return;
-    var mx = e.clientX - sx, my = e.clientY - sy;
-    if (!axis) {
-      if (Math.abs(mx) > 7 && Math.abs(mx) > Math.abs(my) * 1.15) { axis = 1; try { box.setPointerCapture(pid); } catch (_) {} if (img) { img.classList.remove('sl-l', 'sl-r'); img.style.transition = 'none'; } }
-      else if (Math.abs(my) > 9) { axis = 2; }
-    }
-    if (axis === 1) {
-      var now = Date.now(), dt = Math.max(1, now - lt); vx = .8 * vx + .2 * ((e.clientX - lx) / dt); lx = e.clientX; lt = now;
-      dx = mx; if (img) img.style.transform = 'translate3d(' + (dx * .85).toFixed(1) + 'px,0,0)';
-    }
-  });
-  function end(e) {
-    if (e.pointerId !== pid) return;
-    var was = axis; pid = null; axis = 0;
-    try { box.releasePointerCapture(e.pointerId); } catch (_) {}
-    if (was !== 1) return;
-    box.setAttribute('data-sw', '1'); setTimeout(function () { box.removeAttribute('data-sw'); }, 350);
-    var thr = Math.min(64, W * .14);
-    if (e.type === 'pointerup' && (Math.abs(dx) > thr || Math.abs(vx) > .35)) {
-      var dir = (Math.abs(dx) > thr ? dx : vx) < 0 ? 1 : -1;
-      if (img) { img.style.transition = 'none'; img.style.transform = ''; }
-      go(dir);
-    } else settle();
+  var items = [], srcs = [], imgs = [], sig = '', idx = 0, prog = 0, progT = 0, raf = 0, KEEP = 2;
+  function allBtns() { return Array.prototype.slice.call(d.querySelectorAll('.thumbs button')); }
+  function imgBtns() { return allBtns().filter(function (b) { return b.hasAttribute('data-src') && !b.hasAttribute('data-video'); }); }
+  function curBtnIdx() { for (var i = 0; i < items.length; i++) if (items[i].getAttribute('aria-current') === 'true') return i; return -1; }
+  function W() { return track.clientWidth || box.clientWidth || 320; }
+  function ensure(i) {
+    if (i < 0 || i >= imgs.length) return; var im = imgs[i];
+    if (!im.getAttribute('src')) {
+      im.onload = function () { if (i === idx) box.classList.add('gt'); };
+      im.src = srcs[i];
+    } else if (i === idx && im.complete && im.naturalWidth) box.classList.add('gt');
   }
-  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
-  box.addEventListener('click', function (e) { if (box.getAttribute('data-sw')) e.stopImmediatePropagation(); }, true);
-  d.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); });
-  d.addEventListener('click', function (e) { if (e.target.closest('.thumbs button, .swatch')) setTimeout(upd, 30); });
-  upd();
+  /* держим в памяти только окно вокруг текущего кадра: 30+ декодированных фото убивают Safari на телефоне */
+  function window_() {
+    for (var k = 0; k < imgs.length; k++) {
+      if (Math.abs(k - idx) <= KEEP) ensure(k);
+      else if (imgs[k].getAttribute('src')) { imgs[k].onload = null; imgs[k].removeAttribute('src'); }
+    }
+  }
+  function paintUi() {
+    cnt.style.display = items.length > 1 ? '' : 'none'; cnt.textContent = (idx + 1) + ' / ' + items.length;
+  }
+  function setCurrent(i) {
+    idx = i; var b = items[i]; if (!b) return;
+    allBtns().forEach(function (x) { if (x !== b) x.removeAttribute('aria-current'); }); b.setAttribute('aria-current', 'true');
+    box.style.setProperty('--bg', 'url(' + srcs[i] + ')');
+    if (img0) { img0.alt = b.getAttribute('data-alt') || img0.alt; }
+    paintUi(); window_();
+  }
+  function build() {
+    var b = imgBtns(), s = b.map(function (x) { return x.getAttribute('data-src'); }), g = s.join('|');
+    if (g === sig) return false;
+    sig = g; items = b; srcs = s;
+    box.classList.remove('gt');
+    if (items.length < 2) { track.innerHTML = ''; imgs = []; box.classList.remove('gal'); paintUi(); return true; }
+    track.innerHTML = items.map(function (x, i) { return '<div class="gslide" role="group" aria-roledescription="slide" aria-label="Фото ' + (i + 1) + ' из ' + items.length + '"><img alt="' + (x.getAttribute('data-alt') || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '" draggable="false" decoding="async"></div>'; }).join('');
+    imgs = Array.prototype.slice.call(track.querySelectorAll('img'));
+    box.classList.add('gal');
+    var c = curBtnIdx(); idx = c < 0 ? 0 : c;
+    track.style.scrollSnapType = 'none'; track.scrollLeft = idx * W(); track.style.scrollSnapType = '';
+    paintUi(); window_();
+    return true;
+  }
+  function goTo(i, smooth) {
+    if (i < 0 || i >= items.length) return;
+    var far = Math.abs(i - idx) > 1; setCurrent(i);
+    prog = 1; clearTimeout(progT); progT = setTimeout(function () { prog = 0; onScroll(); }, smooth && !far ? 480 : 80);
+    if (smooth && !far) track.scrollTo({ left: i * W(), behavior: 'smooth' });
+    else { track.style.scrollSnapType = 'none'; track.scrollLeft = i * W(); track.style.scrollSnapType = ''; }
+  }
+  function go(dir) { if (items.length < 2) return; goTo((idx + dir + items.length) % items.length, true); }
+  function onScroll() {
+    raf = 0; if (prog || !items.length) return;
+    var i = Math.round(track.scrollLeft / W()); i = Math.max(0, Math.min(items.length - 1, i));
+    if (i !== idx) setCurrent(i);
+  }
+  track.addEventListener('scroll', function () { if (!raf) raf = requestAnimationFrame(onScroll); }, { passive: true });
+  /* внешние переключатели (миниатюры, выбор цвета, закрытие лайтбокса) → промотать ленту */
+  function sync() {
+    var rebuilt = build(); if (items.length < 2) return;
+    var c = curBtnIdx(); if (c >= 0 && c !== idx) goTo(c, !rebuilt);
+  }
+  var mo = new MutationObserver(function (list) {
+    for (var i = 0; i < list.length; i++) if (!track.contains(list[i].target)) { sync(); return; }
+  });
+  mo.observe(gal, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+  /* мышь на десктопе: перетаскивание ленты */
+  var mp = null, msx = 0, msl = 0, mdrag = 0;
+  track.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || items.length < 2) return;
+    mp = e.pointerId; msx = e.clientX; msl = track.scrollLeft; mdrag = 0;
+  });
+  track.addEventListener('pointermove', function (e) {
+    if (e.pointerId !== mp) return; var dx = e.clientX - msx;
+    if (!mdrag && Math.abs(dx) > 6) { mdrag = 1; track.style.scrollSnapType = 'none'; track.classList.add('drag'); try { track.setPointerCapture(mp); } catch (_) {} }
+    if (mdrag) track.scrollLeft = msl - dx;
+  });
+  function mend(e) {
+    if (e.pointerId !== mp) return; mp = null;
+    if (!mdrag) return;
+    try { track.releasePointerCapture(e.pointerId); } catch (_) {}
+    var dx = e.clientX - msx, i = idx;
+    if (dx < -50) i = Math.min(items.length - 1, idx + 1); else if (dx > 50) i = Math.max(0, idx - 1);
+    track.classList.remove('drag'); track.style.scrollSnapType = '';
+    track.scrollTo({ left: i * W(), behavior: 'smooth' }); setCurrent(i);
+    prog = 1; clearTimeout(progT); progT = setTimeout(function () { prog = 0; }, 480);
+    box.setAttribute('data-sw', '1'); setTimeout(function () { box.removeAttribute('data-sw'); }, 350);
+  }
+  track.addEventListener('pointerup', mend); track.addEventListener('pointercancel', mend);
+  box.addEventListener('click', function (e) { if (box.getAttribute('data-sw')) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+  d.addEventListener('keydown', function (e) {
+    if (d.querySelector('.lb') || /^(INPUT|TEXTAREA|SELECT)$/.test((d.activeElement || {}).tagName || '')) return;
+    if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1);
+  });
+  window.addEventListener('resize', function () { if (items.length > 1) { track.style.scrollSnapType = 'none'; track.scrollLeft = idx * W(); track.style.scrollSnapType = ''; } });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) sync(); });
+  build(); paintUi();
 })();
 
 
