@@ -20,13 +20,13 @@
     }
     /* прогресс: плавно по времени (линейно до 90%), добирает до 100% сразу после готовности шрифта и постера */
     function tick(now) {
-      var el = now - t0, cap = loaded ? 100 : 90, goal = Math.min(cap, el / 22);
+      var el = now - t0, cap = loaded ? 100 : 90, goal = Math.min(cap, el / 15);
       shown += (goal - shown) * (loaded ? .12 : .1);
       if (loaded && shown > 99.5) shown = 100;
       var v = Math.round(shown);
       if (v !== last) { last = v; if (n) n.textContent = v; }
       if (bar) bar.style.transform = 'scaleX(' + (shown / 100).toFixed(3) + ')';
-      if (shown >= 100 && el > 2300) { setTimeout(open, 160); return; }
+      if (shown >= 100 && el > 1500) { setTimeout(open, 90); return; }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
@@ -35,21 +35,21 @@
       var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches;
       if (reduce) { Ls.concat(Cs).forEach(function (x) { x.classList.add('on'); }); return; }
       Ls.forEach(function (l, i) {
-        var r = $('.pl-r', l), t = 120 + i * 120, step = 0;
+        var r = $('.pl-r', l), t = 60 + i * 80, step = 0;
         setTimeout(function () {
           l.classList.add('run');
           var iv = setInterval(function () { step++; r.textContent = RUN.charAt((i * 7 + step * 5) % RUN.length); }, 55);
-          setTimeout(function () { clearInterval(iv); l.classList.add('on'); }, 460);
+          setTimeout(function () { clearInterval(iv); l.classList.add('on'); }, 380);
         }, t);
       });
-      Cs.forEach(function (c, i) { setTimeout(function () { c.classList.add('on'); }, 1450 + i * 150); });
+      Cs.forEach(function (c, i) { setTimeout(function () { c.classList.add('on'); }, 1000 + i * 110); });
     })();
     /* ждём только шрифт заголовка и постер героя, а не всю страницу */
     var need = 2, ok = function () { if (--need <= 0) loaded = true; };
     try { if (document.fonts && document.fonts.load) document.fonts.load('1em Radiotechnika', 'Эксклюзивные').then(ok, ok); else ok(); } catch (e) { ok(); }
     var pimg = $('.hero-vid img');
     if (!pimg || (pimg.complete && pimg.naturalWidth)) ok(); else { pimg.addEventListener('load', ok); pimg.addEventListener('error', ok); }
-    setTimeout(function () { loaded = true; }, 3200); setTimeout(open, 4600);
+    setTimeout(function () { loaded = true; }, 2400); setTimeout(open, 3400);
   })();
 
   /* ---------- toast ---------- */
@@ -247,7 +247,7 @@
 
   /* ---------- gallery + lightbox + description ---------- */
   var main = $('#main-photo');
-  var warmed = {}, swapTok = 0;
+  var warmed = {}, swapTok = 0; window.__warm = function (s) { if (s) return warm(s); };
   function warm(src) { if (warmed[src]) return warmed[src]; var im = new Image(); im.decoding = 'async'; im.src = src; warmed[src] = im; if (im.decode) im.decode().catch(function () {}); return im; }
   function swapMain(src) {
     var tok = ++swapTok, im = warm(src);
@@ -533,12 +533,40 @@
     var b = d.createElement('button'); b.type = 'button'; b.className = 'gnav ' + k; b.setAttribute('aria-label', k === 'p' ? 'Предыдущее фото' : 'Следующее фото'); b.textContent = k === 'p' ? '‹' : '›';
     b.addEventListener('click', function (e) { e.stopPropagation(); go(k === 'p' ? -1 : 1); }); box.appendChild(b);
   });
-  var x0 = 0, y0 = 0, t0 = 0, on = false;
-  box.addEventListener('touchstart', function (e) { if (e.touches.length !== 1 || e.target.closest('video')) { on = false; return; } on = true; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); }, { passive: true });
-  box.addEventListener('touchend', function (e) {
-    if (!on) return; on = false; var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
-    if (Math.abs(dx) > 38 && Math.abs(dx) > Math.abs(dy) * 1.3 && Date.now() - t0 < 700) { go(dx < 0 ? 1 : -1); box.setAttribute('data-sw', '1'); setTimeout(function () { box.removeAttribute('data-sw'); }, 400); }
-  }, { passive: true });
+  /* свайп: pointer events + захват пальца, палец ведёт фото, порог по расстоянию или скорости */
+  var sx = 0, sy = 0, pid = null, axis = 0, dx = 0, vx = 0, lx = 0, lt = 0, W = 320;
+  function near() { var b = btns().filter(function (x) { return !x.hasAttribute('data-video'); }), c = cur(); [1, -1, 2].forEach(function (k) { var t = b[(c + k + b.length) % b.length]; if (t && window.__warm) window.__warm(t.getAttribute('data-src')); }); }
+  function settle() { if (!img) return; img.style.transition = 'transform .22s cubic-bezier(.2,.8,.2,1)'; img.style.transform = ''; setTimeout(function () { img.style.transition = ''; }, 260); }
+  box.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' || pid !== null || e.target.closest('video, .gnav')) return;
+    pid = e.pointerId; sx = lx = e.clientX; sy = e.clientY; lt = Date.now(); axis = 0; dx = 0; vx = 0; W = box.clientWidth || 320; near();
+  });
+  box.addEventListener('pointermove', function (e) {
+    if (e.pointerId !== pid) return;
+    var mx = e.clientX - sx, my = e.clientY - sy;
+    if (!axis) {
+      if (Math.abs(mx) > 7 && Math.abs(mx) > Math.abs(my) * 1.15) { axis = 1; try { box.setPointerCapture(pid); } catch (_) {} if (img) { img.classList.remove('sl-l', 'sl-r'); img.style.transition = 'none'; } }
+      else if (Math.abs(my) > 9) { axis = 2; }
+    }
+    if (axis === 1) {
+      var now = Date.now(), dt = Math.max(1, now - lt); vx = .8 * vx + .2 * ((e.clientX - lx) / dt); lx = e.clientX; lt = now;
+      dx = mx; if (img) img.style.transform = 'translate3d(' + (dx * .85).toFixed(1) + 'px,0,0)';
+    }
+  });
+  function end(e) {
+    if (e.pointerId !== pid) return;
+    var was = axis; pid = null; axis = 0;
+    try { box.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (was !== 1) return;
+    box.setAttribute('data-sw', '1'); setTimeout(function () { box.removeAttribute('data-sw'); }, 350);
+    var thr = Math.min(64, W * .14);
+    if (e.type === 'pointerup' && (Math.abs(dx) > thr || Math.abs(vx) > .35)) {
+      var dir = (Math.abs(dx) > thr ? dx : vx) < 0 ? 1 : -1;
+      if (img) { img.style.transition = 'none'; img.style.transform = ''; }
+      go(dir);
+    } else settle();
+  }
+  box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end);
   box.addEventListener('click', function (e) { if (box.getAttribute('data-sw')) e.stopImmediatePropagation(); }, true);
   d.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') go(-1); else if (e.key === 'ArrowRight') go(1); });
   d.addEventListener('click', function (e) { if (e.target.closest('.thumbs button, .swatch')) setTimeout(upd, 30); });
@@ -766,31 +794,26 @@
   d.addEventListener('mouseout', function (e) { if (!e.relatedTarget && cur) { reset(cur); cur = null; } });
 })();
 
-/* ---------- якоря: надёжная прокрутка (iOS Safari / Яндекс.Браузер) ---------- */
+/* ---------- якоря: надёжная плавная прокрутка (iOS Safari / Яндекс.Браузер) ---------- */
 (function () {
   var root = document.documentElement, token = 0;
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function cancel() { token++; root.style.scrollBehavior = ''; }
-  window.addEventListener('wheel', cancel, { passive: true });
-  window.addEventListener('touchmove', cancel, { passive: true });
+  function stop() { token++; root.style.scrollBehavior = ''; }
+  window.addEventListener('wheel', stop, { passive: true });
+  window.addEventListener('touchstart', stop, { passive: true });
+  window.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'PageDown' || e.key === 'PageUp' || e.key === ' ') stop(); });
+  function targetY(el) { return Math.max(0, Math.round(el.getBoundingClientRect().top + window.pageYOffset - 8)); }
   function scrollToEl(el) {
-    var y0 = window.pageYOffset, y = Math.max(0, Math.round(el.getBoundingClientRect().top + y0 - 8)), dist = y - y0;
-    var my = ++token;
-    if (Math.abs(dist) < 2) return;
-    if (reduce) { window.scrollTo(0, y); return; }
-    try { window.scrollTo({ top: y, behavior: 'smooth' }); } catch (_) { window.scrollTo(0, y); }
-    /* если браузер не начал нативную прокрутку — крутим вручную */
-    setTimeout(function () {
-      if (my !== token || Math.abs(window.pageYOffset - y0) > 4) return;
-      root.style.scrollBehavior = 'auto';
-      var t0 = performance.now(), dur = Math.min(800, 350 + Math.abs(dist) * 0.2);
-      (function step(now) {
-        if (my !== token) return;
-        var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-        window.scrollTo(0, y0 + dist * e);
-        if (p < 1) requestAnimationFrame(step); else root.style.scrollBehavior = '';
-      })(t0);
-    }, 140);
+    var my = ++token, y0 = window.pageYOffset;
+    if (reduce) { window.scrollTo(0, targetY(el)); return; }
+    root.style.scrollBehavior = 'auto';
+    var t0 = performance.now(), dur = Math.min(950, 450 + Math.abs(targetY(el) - y0) * .12);
+    (function step(now) {
+      if (my !== token) return;
+      var p = Math.min(1, (now - t0) / dur), e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2, y = targetY(el);
+      window.scrollTo(0, y0 + (y - y0) * e);
+      if (p < 1) requestAnimationFrame(step); else { window.scrollTo(0, targetY(el)); root.style.scrollBehavior = ''; }
+    })(t0);
   }
   document.addEventListener('click', function (e) {
     if (e.defaultPrevented || e.button) return;
@@ -803,7 +826,7 @@
     try { history.replaceState(null, '', u.hash); } catch (_) {}
   });
   if (location.hash.length > 1) window.addEventListener('load', function () {
-    var el = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (el) setTimeout(function () { scrollToEl(el); }, 350);
+    var el = document.getElementById(decodeURIComponent(location.hash.slice(1))); if (el) setTimeout(function () { scrollToEl(el); }, 250);
   });
 })();
 

@@ -908,6 +908,15 @@ html.ready.fonts-ok .tg .tl,html.ready.fonts-ok .tg-sub{animation:none;will-chan
 @media(hover:hover){.card:hover .ph .ph-x{transform:scale(1.05)}}
 .card .ph-dots{z-index:3}
 
+
+/* ---------- тапы и свайпы на телефоне ---------- */
+a,button,.btn,.thumbs button,.gnav,.fab-main,summary{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.hero-actions{position:relative;z-index:6}
+.hero-actions .btn{min-height:56px}
+.tg,.tg *{pointer-events:none}
+.gallery .main{touch-action:pan-y;-webkit-touch-callout:none}
+.gallery .main img{will-change:transform}
+
 /* ===== OZON plate: black brushed metal + Ozon blue/pink ===== */
 .oz{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;width:100%;max-width:1200px;margin:0 auto;min-height:clamp(320px,34vw,400px);padding:clamp(24px,4vw,56px);border-radius:14px;overflow:hidden;color:#fff;text-decoration:none;font-family:Radiotechnika,Manrope,Inter,sans-serif;
   background:
